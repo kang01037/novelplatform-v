@@ -116,6 +116,11 @@
             <if test="status != null">status = #{status},</if>
             <if test="updatedTime != null">updated_time = #{updatedTime},</if>
             <if test="deleted != null">deleted = #{deleted},</if>
+            <if test="clickCount != null">click_count = #{clickCount},</if>
+            <if test="collectCount != null">collect_count = #{collectCount},</if>
+            <if test="recommendCount != null">recommend_count = #{recommendCount},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="scoreCount != null">score_count = #{scoreCount},</if>
         </set>
         WHERE novel_id = #{novelId}
     </update>
