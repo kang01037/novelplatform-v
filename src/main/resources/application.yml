@@ -9,6 +9,11 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   application:
     name: novelplatform
+  data:
+    redis:
+      host: localhost
+      database: 0
+      port: 6379
 
 mybatis:
   mapper-locations: classpath:mapper/*.xml
