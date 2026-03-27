@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.novelplatformv.mapper.ChapterMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.novelplatformv.entity.Chapter">
+        <id column="chapter_id" property="chapterId"/>
+        <result column="novel_id" property="novelId"/>
+        <result column="novel_name" property="novelName"/>
+        <result column="chapter_num" property="chapterNum"/>
+        <result column="chapter_title" property="chapterTitle"/>
+        <result column="chapter_content" property="chapterContent"/>
+        <result column="word_count" property="wordCount"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        chapter_id, novel_id, novel_name, chapter_num, chapter_title, chapter_content,
+        word_count, create_time, update_time
+    </sql>
+
+    <select id="selectByChapterId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM chapter
+        WHERE chapter_id = #{chapterId}
+    </select>
+
+    <select id="selectByNovelId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM chapter
+        WHERE novel_id = #{novelId}
+        ORDER BY chapter_num ASC
+    </select>
+
+    <select id="selectByNovelIdAndChapterNum" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM chapter
+        WHERE novel_id = #{novelId} AND chapter_num = #{chapterNum}
+    </select>
+
+    <select id="selectLatestChapter" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM chapter
+        WHERE novel_id = #{novelId}
+        ORDER BY chapter_num DESC
+        LIMIT 1
+    </select>
+
+    <select id="countByNovelId" resultType="int">
+        SELECT COUNT(*)
+        FROM chapter
+        WHERE novel_id = #{novelId}
+    </select>
+
+    <insert id="insertChapter" parameterType="org.example.novelplatformv.entity.Chapter" useGeneratedKeys="true" keyProperty="chapterId">
+        INSERT INTO chapter (
+        novel_id, novel_name, chapter_num, chapter_title, chapter_content,
+        word_count, create_time, update_time
+        ) VALUES (
+        #{novelId}, #{novelName}, #{chapterNum}, #{chapterTitle}, #{chapterContent},
+        #{wordCount}, #{createTime}, #{updateTime}
+        )
+    </insert>
+
+    <update id="updateChapter" parameterType="org.example.novelplatformv.entity.Chapter">
+        UPDATE chapter
+        <set>
+            <if test="novelId != null">novel_id = #{novelId},</if>
+            <if test="novelName != null">novel_name = #{novelName},</if>
+            <if test="chapterNum != null">chapter_num = #{chapterNum},</if>
+            <if test="chapterTitle != null">chapter_title = #{chapterTitle},</if>
+            <if test="chapterContent != null">chapter_content = #{chapterContent},</if>
+            <if test="wordCount != null">word_count = #{wordCount},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        WHERE chapter_id = #{chapterId}
+    </update>
+
+    <delete id="deleteChapter">
+        DELETE FROM chapter
+        WHERE chapter_id = #{chapterId}
+    </delete>
+
+    <delete id="deleteBatchChapters">
+        DELETE FROM chapter
+        WHERE chapter_id IN
+        <foreach collection="chapterIds" item="chapterId" open="(" separator="," close=")">
+            #{chapterId}
+        </foreach>
+    </delete>
+
+</mapper>
