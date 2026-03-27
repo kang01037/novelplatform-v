@@ -59,10 +59,10 @@ public interface UserMapper {
 
     /**
      * 增加用户登录次数
+     *
      * @param userId 用户 ID
-     * @return 影响的行数，大于 0 表示更新成功
      */
-    int incrementLoginCount(@Param("userId") Long userId);
+    void incrementLoginCount(@Param("userId") Long userId);
 
     User selectByUsernameWithoutDeleted(String username);
 }

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.novelplatformv.mapper.NovelMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.novelplatformv.entity.Novel">
+        <id column="novel_id" property="novelId"/>
+        <result column="novel_name" property="novelName"/>
+        <result column="author_id" property="authorId"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="cover_image" property="coverImage"/>
+        <result column="content" property="content"/>
+        <result column="novel_status" property="novelStatus"/>
+        <result column="click_count" property="clickCount"/>
+        <result column="collect_count" property="collectCount"/>
+        <result column="recommend_count" property="recommendCount"/>
+        <result column="score" property="score"/>
+        <result column="score_count" property="scoreCount"/>
+        <result column="last_update_time" property="lastUpdateTime"/>
+        <result column="last_chapter_id" property="lastChapterId"/>
+        <result column="last_chapter_name" property="lastChapterName"/>
+        <result column="status" property="status"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        novel_id, novel_name, author_id, category_id, cover_image, content, novel_status,
+        click_count, collect_count, recommend_count, score, score_count, last_update_time,
+        last_chapter_id, last_chapter_name, status, created_time, updated_time, deleted
+    </sql>
+
+    <select id="selectByNovelId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM novel
+        WHERE novel_id = #{novelId} AND deleted = 0
+    </select>
+
+    <select id="selectAllNovels" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM novel
+        WHERE deleted = 0
+        ORDER BY created_time DESC
+    </select>
+
+    <select id="selectByAuthorId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM novel
+        WHERE author_id = #{authorId} AND deleted = 0
+        ORDER BY created_time DESC
+    </select>
+
+    <select id="selectByCategoryId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM novel
+        WHERE category_id = #{categoryId} AND deleted = 0
+        ORDER BY created_time DESC
+    </select>
+
+    <select id="selectByNovelNameLike" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM novel
+        WHERE novel_name LIKE CONCAT('%', #{novelName}, '%') AND deleted = 0
+        ORDER BY click_count DESC
+    </select>
+
+    <select id="selectHotNovels" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM novel
+        WHERE deleted = 0
+        ORDER BY click_count DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectLatestNovels" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM novel
+        WHERE deleted = 0
+        ORDER BY last_update_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insertNovel" parameterType="org.example.novelplatformv.entity.Novel" useGeneratedKeys="true" keyProperty="novelId">
+        INSERT INTO novel (
+        novel_name, author_id, category_id, cover_image, content, novel_status,
+        click_count, collect_count, recommend_count, score, score_count,
+        last_update_time, last_chapter_id, last_chapter_name, status,
+        created_time, updated_time, deleted
+        ) VALUES (
+        #{novelName}, #{authorId}, #{categoryId}, #{coverImage}, #{content}, #{novelStatus},
+        #{clickCount}, #{collectCount}, #{recommendCount}, #{score}, #{scoreCount},
+        #{lastUpdateTime}, #{lastChapterId}, #{lastChapterName}, #{status},
+        #{createdTime}, #{updatedTime}, #{deleted}
+        )
+    </insert>
+
+    <update id="updateNovel" parameterType="org.example.novelplatformv.entity.Novel">
+        UPDATE novel
+        <set>
+            <if test="novelName != null">novel_name = #{novelName},</if>
+            <if test="authorId != null">author_id = #{authorId},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="coverImage != null">cover_image = #{coverImage},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="novelStatus != null">novel_status = #{novelStatus},</if>
+            <if test="lastUpdateTime != null">last_update_time = #{lastUpdateTime},</if>
+            <if test="lastChapterId != null">last_chapter_id = #{lastChapterId},</if>
+            <if test="lastChapterName != null">last_chapter_name = #{lastChapterName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="deleted != null">deleted = #{deleted},</if>
+        </set>
+        WHERE novel_id = #{novelId}
+    </update>
+
+    <update id="deleteNovel">
+        UPDATE novel
+        SET deleted = 1, updated_time = NOW()
+        WHERE novel_id = #{novelId}
+    </update>
+
+    <update id="incrementClickCount">
+        UPDATE novel
+        SET click_count = click_count + 1
+        WHERE novel_id = #{novelId}
+    </update>
+
+    <update id="incrementCollectCount">
+        UPDATE novel
+        SET collect_count = collect_count + 1
+        WHERE novel_id = #{novelId}
+    </update>
+
+    <update id="incrementRecommendCount">
+        UPDATE novel
+        SET recommend_count = recommend_count + 1
+        WHERE novel_id = #{novelId}
+    </update>
+
+    <update id="updateScore">
+        UPDATE novel
+        SET score = #{score}, score_count = score_count + 1, updated_time = NOW()
+        WHERE novel_id = #{novelId}
+    </update>
+
+</mapper>
