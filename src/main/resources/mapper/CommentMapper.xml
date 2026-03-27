@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.novelplatformv.mapper.CommentMapper">
+
+    <resultMap id="BaseResultMap" type="org.example.novelplatformv.entity.Comment">
+        <id column="comment_id" property="commentId"/>
+        <result column="user_id" property="userId"/>
+        <result column="novel_id" property="novelId"/>
+        <result column="chapter_id" property="chapterId"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="content" property="content"/>
+        <result column="like_count" property="likeCount"/>
+        <result column="reply_count" property="replyCount"/>
+        <result column="status" property="status"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        comment_id, user_id, novel_id, chapter_id, parent_id, content, like_count,
+        reply_count, status, created_time, updated_time, deleted
+    </sql>
+
+    <select id="selectByCommentId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM comment
+        WHERE comment_id = #{commentId}
+    </select>
+
+    <select id="selectByNovelId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM comment
+        WHERE novel_id = #{novelId} AND deleted = 0 AND status = 1 AND parent_id = 0
+        ORDER BY created_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectByChapterId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM comment
+        WHERE chapter_id = #{chapterId} AND deleted = 0 AND status = 1
+        ORDER BY created_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM comment
+        WHERE user_id = #{userId} AND deleted = 0
+        ORDER BY created_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectReplies" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM comment
+        WHERE parent_id = #{parentId} AND deleted = 0 AND status = 1
+        ORDER BY created_time ASC
+    </select>
+
+    <select id="countByNovelId" resultType="int">
+        SELECT COUNT(*)
+        FROM comment
+        WHERE novel_id = #{novelId} AND deleted = 0 AND status = 1 AND parent_id = 0
+    </select>
+
+    <select id="countByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM comment
+        WHERE user_id = #{userId} AND deleted = 0
+    </select>
+
+    <insert id="insertComment" parameterType="org.example.novelplatformv.entity.Comment" useGeneratedKeys="true" keyProperty="commentId">
+        INSERT INTO comment (
+        user_id, novel_id, chapter_id, parent_id, content,
+        like_count, reply_count, status, created_time, updated_time, deleted
+        ) VALUES (
+        #{userId}, #{novelId}, #{chapterId}, #{parentId}, #{content},
+        #{likeCount}, #{replyCount}, #{status}, #{createdTime}, #{updatedTime}, #{deleted}
+        )
+    </insert>
+
+    <update id="updateComment" parameterType="org.example.novelplatformv.entity.Comment">
+        UPDATE comment
+        <set>
+            <if test="content != null">content = #{content},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="updatedTime != null">updated_time = #{updatedTime},</if>
+            <if test="deleted != null">deleted = #{deleted},</if>
+        </set>
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <update id="deleteComment">
+        UPDATE comment
+        SET deleted = 1, updated_time = NOW()
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <update id="incrementLikeCount">
+        UPDATE comment
+        SET like_count = like_count + 1
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <update id="decrementLikeCount">
+        UPDATE comment
+        SET like_count = like_count - 1
+        WHERE comment_id = #{commentId} AND like_count > 0
+    </update>
+
+    <update id="incrementReplyCount">
+        UPDATE comment
+        SET reply_count = reply_count + 1
+        WHERE comment_id = #{commentId}
+    </update>
+
+    <update id="decrementReplyCount">
+        UPDATE comment
+        SET reply_count = reply_count - 1
+        WHERE comment_id = #{commentId} AND reply_count > 0
+    </update>
+
+    <delete id="deleteBatchComments">
+        UPDATE comment
+        SET deleted = 1, updated_time = NOW()
+        WHERE comment_id IN
+        <foreach collection="commentIds" item="commentId" open="(" separator="," close=")">
+            #{commentId}
+        </foreach>
+    </delete>
+
+</mapper>
