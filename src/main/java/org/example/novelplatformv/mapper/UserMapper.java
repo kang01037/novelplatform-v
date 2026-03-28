@@ -64,5 +64,6 @@ public interface UserMapper {
      */
     void incrementLoginCount(@Param("userId") Long userId);
 
+
     User selectByUsernameWithoutDeleted(String username);
 }

@@ -6,10 +6,17 @@ import org.example.novelplatformv.service.NovelService;
 import org.example.novelplatformv.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class NovelServiceImpl implements NovelService {
@@ -175,5 +182,56 @@ public class NovelServiceImpl implements NovelService {
     public ResponseMessage<List<Novel>> searchNovels(String novelName) {
         List<Novel> novels = novelMapper.selectByNovelNameLike(novelName);
         return ResponseMessage.success(novels);
+    }
+
+    @Override
+    public ResponseMessage<String> uploadCover(Long novelId, MultipartFile file) {
+        Novel novel = novelMapper.selectByNovelId(novelId);
+        if (novel == null) {
+            return ResponseMessage.error("小说不存在");
+        }
+
+        if (file.isEmpty()) {
+            return ResponseMessage.error("上传文件为空");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.matches(".*\\.(jpg|jpeg|png|gif|webp)$")) {
+            return ResponseMessage.error("只支持 jpg、jpeg、png、gif、webp 格式的图片");
+        }
+
+        long fileSize = file.getSize();
+        if (fileSize > 5 * 1024 * 1024) {
+            return ResponseMessage.error("文件大小不能超过 5MB");
+        }
+
+        String uploadDir = System.getProperty("user.dir") + "/uploads/covers/";
+        File dir = new File(uploadDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String newFilename = UUID.randomUUID().toString() + extension;
+        Path filePath = Paths.get(uploadDir + newFilename);
+
+        try {
+            Files.write(filePath, file.getBytes());
+
+            String coverUrl = "/api/novel/cover/" + newFilename;
+            novel.setCoverImage(coverUrl);
+            novel.setUpdatedTime(LocalDateTime.now());
+
+            int result = novelMapper.updateNovel(novel);
+            if (result > 0) {
+                return ResponseMessage.success("封面上传成功");
+            } else {
+                Files.deleteIfExists(filePath);
+                return ResponseMessage.error("封面上传失败");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseMessage.error("封面上传失败：" + e.getMessage());
+        }
     }
 }

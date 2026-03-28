@@ -2,6 +2,7 @@ package org.example.novelplatformv.service;
 
 import org.example.novelplatformv.entity.Novel;
 import org.example.novelplatformv.util.ResponseMessage;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -35,4 +36,7 @@ public interface NovelService {
     ResponseMessage<List<Novel>> getLatestNovels(Integer limit);
 
     ResponseMessage<List<Novel>> searchNovels(String novelName);
+
+    ResponseMessage<String> uploadCover(Long novelId, MultipartFile file);
+
 }

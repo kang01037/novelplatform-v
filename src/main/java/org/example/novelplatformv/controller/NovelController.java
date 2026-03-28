@@ -6,8 +6,13 @@ import org.example.novelplatformv.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -138,5 +143,32 @@ public class NovelController {
             @RequestParam String novelName) {
         ResponseMessage<List<Novel>> response = novelService.searchNovels(novelName);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/upload/cover")
+    public ResponseEntity<ResponseMessage<String>> uploadCover(
+            @RequestParam("novelId") Long novelId,
+            @RequestParam("file") MultipartFile file) {
+        ResponseMessage<String> response = novelService.uploadCover(novelId, file);
+        if ("封面上传成功".equals(response.getMessage())) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/cover/{filename}")
+    public ResponseEntity<byte[]> getCover(@PathVariable String filename) {
+        String uploadDir = System.getProperty("user.dir") + "/uploads/covers/";
+        Path filePath = Paths.get(uploadDir + filename);
+
+        try {
+            byte[] imageBytes = Files.readAllBytes(filePath);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/jpeg")
+                    .body(imageBytes);
+        } catch (IOException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

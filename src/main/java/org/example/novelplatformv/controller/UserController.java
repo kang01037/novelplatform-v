@@ -6,7 +6,12 @@ import org.example.novelplatformv.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -82,6 +87,33 @@ public class UserController {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(401).body(response);
+        }
+    }
+
+    @PostMapping("/upload/avatar")
+    public ResponseEntity<ResponseMessage<String>> uploadAvatar(
+            @RequestParam("userId") Long userId,
+            @RequestParam("file") MultipartFile file) {
+        ResponseMessage<String> response = userService.uploadAvatar(userId, file);
+        if ("头像上传成功".equals(response.getMessage())) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/avatar/{filename}")
+    public ResponseEntity<byte[]> getAvatar(@PathVariable String filename) {
+        String uploadDir = System.getProperty("user.dir") + "/uploads/avatars/";
+        Path filePath = Paths.get(uploadDir + filename);
+
+        try {
+            byte[] imageBytes = Files.readAllBytes(filePath);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/jpeg")
+                    .body(imageBytes);
+        } catch (IOException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }
