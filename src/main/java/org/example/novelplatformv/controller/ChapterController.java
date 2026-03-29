@@ -61,7 +61,7 @@ public class ChapterController {
     @PostMapping("/create")
     public ResponseEntity<ResponseMessage<String>> createChapter(@RequestBody Chapter chapter) {
         ResponseMessage<String> response = chapterService.createChapter(chapter);
-        if ("章节创建成功".equals(response.getMessage())) {
+        if ("章节创建成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -71,7 +71,7 @@ public class ChapterController {
     @PutMapping("/update")
     public ResponseEntity<ResponseMessage<String>> updateChapter(@RequestBody Chapter chapter) {
         ResponseMessage<String> response = chapterService.updateChapter(chapter);
-        if ("更新成功".equals(response.getMessage())) {
+        if ("更新成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.internalServerError().body(response);
@@ -81,7 +81,7 @@ public class ChapterController {
     @DeleteMapping("/delete/{chapterId}")
     public ResponseEntity<ResponseMessage<String>> deleteChapter(@PathVariable Long chapterId) {
         ResponseMessage<String> response = chapterService.deleteChapter(chapterId);
-        if ("删除成功".equals(response.getMessage())) {
+        if ("删除成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.internalServerError().body(response);
@@ -91,7 +91,7 @@ public class ChapterController {
     @DeleteMapping("/delete/batch")
     public ResponseEntity<ResponseMessage<String>> deleteBatchChapters(@RequestBody List<Long> chapterIds) {
         ResponseMessage<String> response = chapterService.deleteBatchChapters(chapterIds);
-        if ("批量删除成功".equals(response.getMessage())) {
+        if ("批量删除成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);

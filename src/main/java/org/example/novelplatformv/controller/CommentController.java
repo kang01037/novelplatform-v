@@ -74,7 +74,7 @@ public class CommentController {
     @PostMapping("/create")
     public ResponseEntity<ResponseMessage<String>> createComment(@RequestBody Comment comment) {
         ResponseMessage<String> response = commentService.createComment(comment);
-        if ("评论成功".equals(response.getMessage())) {
+        if ("评论成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -84,7 +84,7 @@ public class CommentController {
     @PutMapping("/update")
     public ResponseEntity<ResponseMessage<String>> updateComment(@RequestBody Comment comment) {
         ResponseMessage<String> response = commentService.updateComment(comment);
-        if ("更新成功".equals(response.getMessage())) {
+        if ("更新成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.internalServerError().body(response);
@@ -94,7 +94,7 @@ public class CommentController {
     @DeleteMapping("/delete/{commentId}")
     public ResponseEntity<ResponseMessage<String>> deleteComment(@PathVariable Long commentId) {
         ResponseMessage<String> response = commentService.deleteComment(commentId);
-        if ("删除成功".equals(response.getMessage())) {
+        if ("删除成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.internalServerError().body(response);
@@ -104,7 +104,7 @@ public class CommentController {
     @DeleteMapping("/delete/batch")
     public ResponseEntity<ResponseMessage<String>> deleteBatchComments(@RequestBody List<Long> commentIds) {
         ResponseMessage<String> response = commentService.deleteBatchComments(commentIds);
-        if ("批量删除成功".equals(response.getMessage())) {
+        if ("批量删除成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -114,7 +114,7 @@ public class CommentController {
     @PostMapping("/{commentId}/like")
     public ResponseEntity<ResponseMessage<String>> likeComment(@PathVariable Long commentId) {
         ResponseMessage<String> response = commentService.likeComment(commentId);
-        if ("点赞成功".equals(response.getMessage())) {
+        if ("点赞成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -124,7 +124,7 @@ public class CommentController {
     @PostMapping("/{commentId}/unlike")
     public ResponseEntity<ResponseMessage<String>> unlikeComment(@PathVariable Long commentId) {
         ResponseMessage<String> response = commentService.unlikeComment(commentId);
-        if ("取消点赞成功".equals(response.getMessage())) {
+        if ("取消点赞成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);

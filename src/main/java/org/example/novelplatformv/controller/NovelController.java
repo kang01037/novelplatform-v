@@ -54,7 +54,7 @@ public class NovelController {
     @PostMapping("/create")
     public ResponseEntity<ResponseMessage<String>> createNovel(@RequestBody Novel novel) {
         ResponseMessage<String> response = novelService.createNovel(novel);
-        if ("小说创建成功".equals(response.getMessage())) {
+        if ("小说创建成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -64,7 +64,7 @@ public class NovelController {
     @PutMapping("/update")
     public ResponseEntity<ResponseMessage<String>> updateNovel(@RequestBody Novel novel) {
         ResponseMessage<String> response = novelService.updateNovel(novel);
-        if ("更新成功".equals(response.getMessage())) {
+        if ("更新成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.internalServerError().body(response);
@@ -74,7 +74,7 @@ public class NovelController {
     @DeleteMapping("/delete/{novelId}")
     public ResponseEntity<ResponseMessage<String>> deleteNovel(@PathVariable Long novelId) {
         ResponseMessage<String> response = novelService.deleteNovel(novelId);
-        if ("删除成功".equals(response.getMessage())) {
+        if ("删除成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.internalServerError().body(response);
@@ -84,7 +84,7 @@ public class NovelController {
     @PostMapping("/{novelId}/click")
     public ResponseEntity<ResponseMessage<String>> incrementClickCount(@PathVariable Long novelId) {
         ResponseMessage<String> response = novelService.incrementClickCount(novelId);
-        if ("点击量已更新".equals(response.getMessage())) {
+        if ("点击量已更新".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -94,7 +94,7 @@ public class NovelController {
     @PostMapping("/{novelId}/collect")
     public ResponseEntity<ResponseMessage<String>> incrementCollectCount(@PathVariable Long novelId) {
         ResponseMessage<String> response = novelService.incrementCollectCount(novelId);
-        if ("收藏量已更新".equals(response.getMessage())) {
+        if ("收藏量已更新".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -104,7 +104,7 @@ public class NovelController {
     @PostMapping("/{novelId}/recommend")
     public ResponseEntity<ResponseMessage<String>> incrementRecommendCount(@PathVariable Long novelId) {
         ResponseMessage<String> response = novelService.incrementRecommendCount(novelId);
-        if ("推荐量已更新".equals(response.getMessage())) {
+        if ("推荐量已更新".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -117,7 +117,7 @@ public class NovelController {
             @RequestBody Map<String, BigDecimal> requestData) {
         BigDecimal score = requestData.get("score");
         ResponseMessage<String> response = novelService.rateNovel(novelId, score);
-        if ("评分成功".equals(response.getMessage())) {
+        if ("评分成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);

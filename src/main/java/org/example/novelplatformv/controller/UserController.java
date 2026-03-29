@@ -50,7 +50,7 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<ResponseMessage<String>> register(@RequestBody User user) {
         ResponseMessage<String> response = userService.registerUser(user);
-        if ("注册成功".equals(response.getMessage())) {
+        if ("注册成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.badRequest().body(response);
@@ -60,7 +60,7 @@ public class UserController {
     @PutMapping("/update")
     public ResponseEntity<ResponseMessage<String>> updateUser(@RequestBody User user) {
         ResponseMessage<String> response = userService.updateUser(user);
-        if ("更新成功".equals(response.getMessage())) {
+        if ("更新成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.internalServerError().body(response);
@@ -70,7 +70,7 @@ public class UserController {
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity<ResponseMessage<String>> deleteUser(@PathVariable Long userId) {
         ResponseMessage<String> response = userService.deleteUser(userId);
-        if ("删除成功".equals(response.getMessage())) {
+        if ("删除成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.internalServerError().body(response);
@@ -83,7 +83,7 @@ public class UserController {
         String password = loginData.get("password");
 
         ResponseMessage<String> response = userService.login(username, password);
-        if ("登录成功".equals(response.getMessage())) {
+        if ("登录成功".equals(response.getData())) {
             return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(401).body(response);
