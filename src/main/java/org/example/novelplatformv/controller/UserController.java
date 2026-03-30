@@ -116,4 +116,14 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @DeleteMapping("/avatar/{userId}")
+    public ResponseEntity<ResponseMessage<String>> deleteAvatar(@PathVariable Long userId) {
+        ResponseMessage<String> response = userService.deleteAvatar(userId);
+        if ("头像删除成功".equals(response.getData()) || "头像不存在".equals(response.getMessage())) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

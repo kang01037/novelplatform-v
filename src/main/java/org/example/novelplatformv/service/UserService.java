@@ -26,4 +26,6 @@ public interface UserService {
 
     ResponseMessage<String> uploadAvatar(Long userId, MultipartFile file);
 
+    ResponseMessage<String> deleteAvatar(Long userId);
+
 }

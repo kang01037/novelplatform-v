@@ -217,4 +217,40 @@ public class UserServiceImpl implements UserService {
             return ResponseMessage.error("头像上传失败：" + e.getMessage());
         }
     }
+
+    @Override
+    public ResponseMessage<String> deleteAvatar(Long userId) {
+        User user = userMapper.selectByUserId(userId);
+        if (user == null) {
+            return ResponseMessage.error("用户不存在");
+        }
+
+        String avatar = user.getAvatar();
+        if (avatar == null || avatar.isEmpty()) {
+            return ResponseMessage.success("头像不存在");
+        }
+
+        String uploadDir = System.getProperty("user.dir") + "/uploads/avatars/";
+        String filename = avatar.substring(avatar.lastIndexOf("/") + 1);
+        Path filePath = Paths.get(uploadDir + filename);
+
+        try {
+            if (Files.exists(filePath)) {
+                Files.delete(filePath);
+            }
+
+            user.setAvatar(null);
+            user.setUpdatedTime(LocalDateTime.now());
+
+            int result = userMapper.updateUser(user);
+            if (result > 0) {
+                return ResponseMessage.success("头像删除成功");
+            } else {
+                return ResponseMessage.error("头像删除失败");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseMessage.error("头像删除失败：" + e.getMessage());
+        }
+    }
 }
