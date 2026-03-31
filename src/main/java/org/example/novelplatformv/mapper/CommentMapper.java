@@ -128,4 +128,14 @@ public interface CommentMapper {
      * @return 影响的行数
      */
     int deleteBatchComments(@Param("commentIds") List<Long> commentIds);
+
+    /**
+     * 查询全部评论列表（分页查询）
+     * @param offset 偏移量
+     * @param limit 每页数量
+     * @return 评论列表
+     */
+    List<Comment> selectAllComments(
+            @Param("offset") Integer offset,
+            @Param("limit") Integer limit);
 }

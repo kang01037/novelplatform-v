@@ -15,6 +15,8 @@ public interface CommentService {
 
     ResponseMessage<List<Comment>> getCommentsByUserId(Long userId, Integer page, Integer size);
 
+    ResponseMessage<List<Comment>> getAllComments(Integer page, Integer size);
+
     ResponseMessage<List<Comment>> getCommentReplies(Long parentId);
 
     ResponseMessage<Integer> getCommentCountByNovelId(Long novelId);

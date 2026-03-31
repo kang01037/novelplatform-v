@@ -62,6 +62,16 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    public ResponseMessage<List<Comment>> getAllComments(Integer page, Integer size) {
+        if (page == null || page < 1) page = 1;
+        if (size == null || size < 1) size = 20;
+
+        int offset = (page - 1) * size;
+        List<Comment> comments = commentMapper.selectAllComments(offset, size);
+        return ResponseMessage.success(comments);
+    }
+
+    @Override
     public ResponseMessage<List<Comment>> getCommentReplies(Long parentId) {
         List<Comment> replies = commentMapper.selectReplies(parentId);
         return ResponseMessage.success(replies);

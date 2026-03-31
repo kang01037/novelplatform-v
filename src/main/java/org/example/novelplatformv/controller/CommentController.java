@@ -121,6 +121,15 @@ public class CommentController {
         }
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<ResponseMessage<List<Comment>>> getAllComments(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer size) {
+        ResponseMessage<List<Comment>> response = commentService.getAllComments(page, size);
+        return ResponseEntity.ok(response);
+    }
+
+
     @PostMapping("/{commentId}/unlike")
     public ResponseEntity<ResponseMessage<String>> unlikeComment(@PathVariable Long commentId) {
         ResponseMessage<String> response = commentService.unlikeComment(commentId);
