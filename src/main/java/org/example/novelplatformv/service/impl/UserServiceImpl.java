@@ -46,6 +46,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User getUserByOpenid(String openid) {
+        return userMapper.selectByOpenid(openid);
+    }
+
+    @Override
     public ResponseMessage<List<User>> getAllUsers() {
         List<User> users = userMapper.selectAllUsers();
         return ResponseMessage.success(users);
@@ -53,14 +58,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseMessage<String> registerUser(User user) {
+        // 兼容微信登录：如果没有密码则跳过加密逻辑
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            String encodedPassword = passwordEncoder.encode(user.getPassword());
+            user.setPassword(encodedPassword);
+        } else {
+            user.setPassword(null);
+        }
+
         User existingUser = userMapper.selectByUsernameWithoutDeleted(user.getUsername());
 
         if (existingUser != null) {
             if (existingUser.getDeleted() == 1) {
                 user.setUserId(existingUser.getUserId());
-
-                String encodedPassword = passwordEncoder.encode(user.getPassword());
-                user.setPassword(encodedPassword);
                 user.setEmail(user.getEmail());
                 user.setPhone(user.getPhone());
                 user.setAvatar(user.getAvatar());
@@ -85,8 +95,6 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        String encodedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(encodedPassword);
         user.setUserStatus(user.getUserStatus() != null ? user.getUserStatus() : 1);
         user.setLoginCount(0);
         user.setCreatedTime(LocalDateTime.now());

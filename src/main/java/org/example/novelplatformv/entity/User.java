@@ -23,6 +23,8 @@ public class User{
 
     private String nickname;
 
+    private String wechatOpenid;
+
     private Integer gender;
 
     private LocalDate birthday;

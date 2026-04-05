@@ -12,6 +12,8 @@ public interface UserService {
 
     ResponseMessage<User> getUserByUsername(String username);
 
+    User getUserByOpenid(String openid);
+
     ResponseMessage<List<User>> getAllUsers();
 
     ResponseMessage<String> registerUser(User user);

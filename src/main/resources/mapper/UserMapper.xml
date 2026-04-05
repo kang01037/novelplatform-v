@@ -39,6 +39,10 @@
         WHERE username = #{username} AND deleted = 0
     </select>
 
+    <select id="selectByOpenid" resultType="User">
+        SELECT * FROM user WHERE wechat_openid = #{openid} AND deleted = 0
+    </select>
+
     <select id="selectByUsernameWithoutDeleted" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List"/>

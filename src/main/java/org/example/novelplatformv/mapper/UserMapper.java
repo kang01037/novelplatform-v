@@ -30,6 +30,12 @@ public interface UserMapper {
     List<User> selectAllUsers();
 
     /**
+     * 微信id
+     *
+     */
+    User selectByOpenid(@Param("openid") String openid);
+
+    /**
      * 插入新用户
      * @param user 用户对象
      * @return 影响的行数，大于 0 表示插入成功

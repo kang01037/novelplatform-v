@@ -18,6 +18,11 @@ public class ResponseMessage<T> {
         return new ResponseMessage<T>(HttpStatus.OK.value(), "success", data);
     }
 
+    // 接口请求成功 (支持自定义消息)
+    public static <T> ResponseMessage<T> success(String message, T data) {
+        return new ResponseMessage<T>(HttpStatus.OK.value(), message, data);
+    }
+
     //接口请求失败
     public static <T> ResponseMessage<T> error(String message) {
         return new ResponseMessage<T>(HttpStatus.BAD_REQUEST.value(), message, null);
