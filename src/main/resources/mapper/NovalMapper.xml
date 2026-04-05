@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.example.novelplatformv.mapper.NovelMapper">
+<mapper namespace="org.example.novelplatform.mapper.NovelMapper">
 
-    <resultMap id="BaseResultMap" type="org.example.novelplatformv.entity.Novel">
+    <resultMap id="BaseResultMap" type="org.example.novelplatform.entity.Novel">
         <id column="novel_id" property="novelId"/>
         <result column="novel_name" property="novelName"/>
         <result column="author_id" property="authorId"/>
@@ -87,7 +87,7 @@
         LIMIT #{limit}
     </select>
 
-    <insert id="insertNovel" parameterType="org.example.novelplatformv.entity.Novel" useGeneratedKeys="true" keyProperty="novelId">
+    <insert id="insertNovel" parameterType="org.example.novelplatform.entity.Novel" useGeneratedKeys="true" keyProperty="novelId">
         INSERT INTO novel (
         novel_name, author_id, category_id, cover_image, content, novel_status,
         click_count, collect_count, recommend_count, score, score_count,
@@ -101,7 +101,7 @@
         )
     </insert>
 
-    <update id="updateNovel" parameterType="org.example.novelplatformv.entity.Novel">
+    <update id="updateNovel" parameterType="org.example.novelplatform.entity.Novel">
         UPDATE novel
         <set>
             <if test="novelName != null">novel_name = #{novelName},</if>

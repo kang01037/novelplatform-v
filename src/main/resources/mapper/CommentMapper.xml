@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.example.novelplatformv.mapper.CommentMapper">
+<mapper namespace="org.example.novelplatform.mapper.CommentMapper">
 
-    <resultMap id="BaseResultMap" type="org.example.novelplatformv.entity.Comment">
+    <resultMap id="BaseResultMap" type="org.example.novelplatform.entity.Comment">
         <id column="comment_id" property="commentId"/>
         <result column="user_id" property="userId"/>
         <result column="novel_id" property="novelId"/>
@@ -85,7 +85,7 @@
         WHERE user_id = #{userId} AND deleted = 0
     </select>
 
-    <insert id="insertComment" parameterType="org.example.novelplatformv.entity.Comment" useGeneratedKeys="true" keyProperty="commentId">
+    <insert id="insertComment" parameterType="org.example.novelplatform.entity.Comment" useGeneratedKeys="true" keyProperty="commentId">
         INSERT INTO comment (
         user_id, novel_id, chapter_id, parent_id, content,
         like_count, reply_count, status, created_time, updated_time, deleted
@@ -95,7 +95,7 @@
         )
     </insert>
 
-    <update id="updateComment" parameterType="org.example.novelplatformv.entity.Comment">
+    <update id="updateComment" parameterType="org.example.novelplatform.entity.Comment">
         UPDATE comment
         <set>
             <if test="content != null">content = #{content},</if>

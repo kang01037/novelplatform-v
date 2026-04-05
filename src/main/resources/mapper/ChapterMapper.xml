@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.example.novelplatformv.mapper.ChapterMapper">
+<mapper namespace="org.example.novelplatform.mapper.ChapterMapper">
 
-    <resultMap id="BaseResultMap" type="org.example.novelplatformv.entity.Chapter">
+    <resultMap id="BaseResultMap" type="org.example.novelplatform.entity.Chapter">
         <id column="chapter_id" property="chapterId"/>
         <result column="novel_id" property="novelId"/>
         <result column="novel_name" property="novelName"/>
@@ -56,7 +56,7 @@
         WHERE novel_id = #{novelId}
     </select>
 
-    <insert id="insertChapter" parameterType="org.example.novelplatformv.entity.Chapter" useGeneratedKeys="true" keyProperty="chapterId">
+    <insert id="insertChapter" parameterType="org.example.novelplatform.entity.Chapter" useGeneratedKeys="true" keyProperty="chapterId">
         INSERT INTO chapter (
         novel_id, novel_name, chapter_num, chapter_title, chapter_content,
         word_count, create_time, update_time
@@ -66,7 +66,7 @@
         )
     </insert>
 
-    <update id="updateChapter" parameterType="org.example.novelplatformv.entity.Chapter">
+    <update id="updateChapter" parameterType="org.example.novelplatform.entity.Chapter">
         UPDATE chapter
         <set>
             <if test="novelId != null">novel_id = #{novelId},</if>
