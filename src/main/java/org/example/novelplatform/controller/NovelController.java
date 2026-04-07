@@ -13,12 +13,13 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/novel")
-@CrossOrigin(origins = "*")
 public class NovelController {
 
     @Autowired
@@ -169,6 +170,28 @@ public class NovelController {
                     .body(imageBytes);
         } catch (IOException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/cover/base64/{filename}")
+    public ResponseEntity<Map<String, String>> getCoverBase64(@PathVariable String filename) {
+        String uploadDir = System.getProperty("user.dir") + "/uploads/covers/";
+        Path filePath = Paths.get(uploadDir + filename);
+
+        Map<String, String> result = new HashMap<>();
+
+        try {
+            byte[] imageBytes = Files.readAllBytes(filePath);
+            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+            String base64Data = "data:image/jpeg;base64," + base64Image;
+
+            result.put("image", base64Data);
+            result.put("filename", filename);
+
+            return ResponseEntity.ok(result);
+        } catch (IOException e) {
+            result.put("error", "图片不存在");
+            return ResponseEntity.status(404).body(result);
         }
     }
 }

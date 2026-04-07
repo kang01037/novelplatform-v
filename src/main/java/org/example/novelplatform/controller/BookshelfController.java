@@ -12,7 +12,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/bookshelf")
-@CrossOrigin(origins = "*")
 public class BookshelfController {
 
     @Autowired

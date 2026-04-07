@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/chapter")
-@CrossOrigin(origins = "*")
 public class ChapterController {
 
     @Autowired
