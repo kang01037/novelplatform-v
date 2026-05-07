@@ -6,6 +6,7 @@ import org.example.novelplatform.config.WechatMiniAppConfig;
 import org.example.novelplatform.entity.User;
 import org.example.novelplatform.service.UserService;
 import org.example.novelplatform.util.JwtUtil;
+import org.example.novelplatform.util.RedisUtil;
 import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,9 @@ public class WechatLoginController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -70,10 +74,15 @@ public class WechatLoginController {
                 userService.registerUser(user);
             }
 
-            String token = jwtUtil.generateToken(user.getUserId(), user.getUsername());
+            String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getUsername());
+            String refreshToken = jwtUtil.generateRefreshToken(user.getUserId(), user.getUsername());
+
+            redisUtil.set("refresh:token:" + md5(refreshToken), String.valueOf(user.getUserId()),
+                    jwtUtil.getRefreshExpiration() / 1000);
 
             Map<String, Object> data = new HashMap<>();
-            data.put("token", token);
+            data.put("accessToken", accessToken);
+            data.put("refreshToken", refreshToken);
             data.put("userInfo", user);
 
             return ResponseMessage.success("登录成功", data);
@@ -85,18 +94,32 @@ public class WechatLoginController {
     }
 
     @PostMapping("/check-token")
-    public ResponseMessage<User> checkToken(@RequestHeader("Authorization") String token) {
+    public ResponseMessage<User> checkToken(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader;
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
 
-        if (jwtUtil.validateToken(token)) {
-            // 修复：使用 getUserIdFromToken 获取 ID，而不是解析用户名
+        if (token != null && jwtUtil.validateAccessToken(token)) {
             Long userId = jwtUtil.getUserIdFromToken(token);
-            User user = userService.getUserById(userId.longValue()).getData();
+            User user = userService.getUserById(userId).getData();
             return ResponseMessage.success("Token有效", user);
         } else {
             return ResponseMessage.error("Token无效或已过期");
+        }
+    }
+
+    private String md5(String input) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(input.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return java.util.UUID.randomUUID().toString();
         }
     }
 }

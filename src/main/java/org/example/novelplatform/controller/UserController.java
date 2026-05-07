@@ -3,6 +3,7 @@ package org.example.novelplatform.controller;
 import org.example.novelplatform.entity.User;
 import org.example.novelplatform.service.UserService;
 import org.example.novelplatform.util.JwtUtil;
+import org.example.novelplatform.util.RedisUtil;
 import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,9 +14,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user")
@@ -26,6 +29,9 @@ public class UserController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private RedisUtil redisUtil;
 
     @GetMapping("/{userId}")
     public ResponseEntity<ResponseMessage<User>> getUserById(@PathVariable Long userId) {
@@ -88,19 +94,38 @@ public class UserController {
 
         ResponseMessage<String> response = userService.login(username, password);
         if (response.getCode() == 200) {
-            // 登录成功后，获取用户信息并生成 JWT Token
             ResponseMessage<User> userResponse = userService.getUserByUsername(username);
             User user = userResponse.getData();
 
-            String token = jwtUtil.generateToken(user.getUserId(), user.getUsername());
+            String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getUsername());
+            String refreshToken = jwtUtil.generateRefreshToken(user.getUserId(), user.getUsername());
+
+            // Refresh Token 存入 Redis（用于吊销）
+            redisUtil.set("refresh:token:" + md5(refreshToken), String.valueOf(user.getUserId()),
+                    jwtUtil.getRefreshExpiration() / 1000);
 
             Map<String, Object> data = new HashMap<>();
-            data.put("token", token);
+            data.put("accessToken", accessToken);
+            data.put("refreshToken", refreshToken);
             data.put("userInfo", user);
 
             return ResponseEntity.ok(ResponseMessage.success("登录成功", data));
         } else {
             return ResponseEntity.status(401).body(ResponseMessage.error(response.getMessage()));
+        }
+    }
+
+    private String md5(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(input.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return UUID.randomUUID().toString();
         }
     }
 
