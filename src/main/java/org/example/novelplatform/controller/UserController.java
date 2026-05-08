@@ -1,20 +1,15 @@
 package org.example.novelplatform.controller;
 
 import org.example.novelplatform.entity.User;
+import org.example.novelplatform.service.AuthService;
+import org.example.novelplatform.service.FileService;
 import org.example.novelplatform.service.UserService;
-import org.example.novelplatform.util.JwtUtil;
-import org.example.novelplatform.util.RedisUtil;
 import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,10 +21,10 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private AuthService authService;
 
     @Autowired
-    private RedisUtil redisUtil;
+    private FileService fileService;
 
     @GetMapping("/{userId}")
     public ResponseEntity<ResponseMessage<User>> getUserById(@PathVariable Long userId) {
@@ -50,9 +45,8 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<ResponseMessage<java.util.List<User>>> getAllUsers() {
-        ResponseMessage<List<User>> response = userService.getAllUsers();
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ResponseMessage<List<User>>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @PostMapping("/register")
@@ -90,25 +84,11 @@ public class UserController {
         String username = loginData.get("username");
         String password = loginData.get("password");
 
-        ResponseMessage<String> response = userService.login(username, password);
+        ResponseMessage<Map<String, Object>> response = authService.login(username, password);
         if (response.getCode() == 200) {
-            ResponseMessage<User> userResponse = userService.getUserByUsername(username);
-            User user = userResponse.getData();
-
-            String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getUsername());
-            String refreshToken = jwtUtil.generateRefreshToken(user.getUserId(), user.getUsername());
-
-            redisUtil.set("refresh:token:" + user.getUserId(), String.valueOf(user.getUserId()),
-                    jwtUtil.getRefreshExpiration() / 1000);
-
-            Map<String, Object> data = new HashMap<>();
-            data.put("accessToken", accessToken);
-            data.put("refreshToken", refreshToken);
-            data.put("userInfo", user);
-
-            return ResponseEntity.ok(ResponseMessage.success("登录成功", data));
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(401).body(ResponseMessage.error(response.getMessage()));
+            return ResponseEntity.status(401).body(response);
         }
     }
 
@@ -126,17 +106,7 @@ public class UserController {
 
     @GetMapping("/avatar/{filename}")
     public ResponseEntity<byte[]> getAvatar(@PathVariable String filename) {
-        String uploadDir = System.getProperty("user.dir") + "/uploads/avatars/";
-        Path filePath = Paths.get(uploadDir + filename);
-
-        try {
-            byte[] imageBytes = Files.readAllBytes(filePath);
-            return ResponseEntity.ok()
-                    .header("Content-Type", "image/jpeg")
-                    .body(imageBytes);
-        } catch (IOException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return fileService.getAvatar(filename);
     }
 
     @DeleteMapping("/avatar/{userId}")

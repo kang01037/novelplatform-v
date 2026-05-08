@@ -1,6 +1,7 @@
 package org.example.novelplatform.controller;
 
 import org.example.novelplatform.entity.Novel;
+import org.example.novelplatform.service.FileService;
 import org.example.novelplatform.service.NovelService;
 import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,13 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +19,9 @@ public class NovelController {
 
     @Autowired
     private NovelService novelService;
+
+    @Autowired
+    private FileService fileService;
 
     @GetMapping("/{novelId}")
     public ResponseEntity<ResponseMessage<Novel>> getNovelById(@PathVariable Long novelId) {
@@ -36,20 +34,17 @@ public class NovelController {
 
     @GetMapping("/list")
     public ResponseEntity<ResponseMessage<List<Novel>>> getAllNovels() {
-        ResponseMessage<List<Novel>> response = novelService.getAllNovels();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(novelService.getAllNovels());
     }
 
     @GetMapping("/author/{authorId}")
     public ResponseEntity<ResponseMessage<List<Novel>>> getNovelsByAuthorId(@PathVariable Long authorId) {
-        ResponseMessage<List<Novel>> response = novelService.getNovelsByAuthorId(authorId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(novelService.getNovelsByAuthorId(authorId));
     }
 
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<ResponseMessage<List<Novel>>> getNovelsByCategoryId(@PathVariable Long categoryId) {
-        ResponseMessage<List<Novel>> response = novelService.getNovelsByCategoryId(categoryId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(novelService.getNovelsByCategoryId(categoryId));
     }
 
     @PostMapping("/create")
@@ -128,22 +123,19 @@ public class NovelController {
     @GetMapping("/hot")
     public ResponseEntity<ResponseMessage<List<Novel>>> getHotNovels(
             @RequestParam(defaultValue = "10") Integer limit) {
-        ResponseMessage<List<Novel>> response = novelService.getHotNovels(limit);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(novelService.getHotNovels(limit));
     }
 
     @GetMapping("/latest")
     public ResponseEntity<ResponseMessage<List<Novel>>> getLatestNovels(
             @RequestParam(defaultValue = "10") Integer limit) {
-        ResponseMessage<List<Novel>> response = novelService.getLatestNovels(limit);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(novelService.getLatestNovels(limit));
     }
 
     @GetMapping("/search")
     public ResponseEntity<ResponseMessage<List<Novel>>> searchNovels(
             @RequestParam String novelName) {
-        ResponseMessage<List<Novel>> response = novelService.searchNovels(novelName);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(novelService.searchNovels(novelName));
     }
 
     @PostMapping("/upload/cover")
@@ -160,38 +152,11 @@ public class NovelController {
 
     @GetMapping("/cover/{filename}")
     public ResponseEntity<byte[]> getCover(@PathVariable String filename) {
-        String uploadDir = System.getProperty("user.dir") + "/uploads/covers/";
-        Path filePath = Paths.get(uploadDir + filename);
-
-        try {
-            byte[] imageBytes = Files.readAllBytes(filePath);
-            return ResponseEntity.ok()
-                    .header("Content-Type", "image/jpeg")
-                    .body(imageBytes);
-        } catch (IOException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return fileService.getCover(filename);
     }
 
     @GetMapping("/cover/base64/{filename}")
     public ResponseEntity<Map<String, String>> getCoverBase64(@PathVariable String filename) {
-        String uploadDir = System.getProperty("user.dir") + "/uploads/covers/";
-        Path filePath = Paths.get(uploadDir + filename);
-
-        Map<String, String> result = new HashMap<>();
-
-        try {
-            byte[] imageBytes = Files.readAllBytes(filePath);
-            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
-            String base64Data = "data:image/jpeg;base64," + base64Image;
-
-            result.put("image", base64Data);
-            result.put("filename", filename);
-
-            return ResponseEntity.ok(result);
-        } catch (IOException e) {
-            result.put("error", "图片不存在");
-            return ResponseEntity.status(404).body(result);
-        }
+        return fileService.getCoverBase64(filename);
     }
 }
