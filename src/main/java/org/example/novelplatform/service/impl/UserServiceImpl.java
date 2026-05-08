@@ -1,11 +1,11 @@
 package org.example.novelplatform.service.impl;
 
 import org.example.novelplatform.entity.User;
+import org.example.novelplatform.exception.ServiceException;
 import org.example.novelplatform.mapper.UserMapper;
 import org.example.novelplatform.service.UserService;
 import org.example.novelplatform.util.FileValidator;
 import org.example.novelplatform.util.PasswordEncoder;
-import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,21 +29,21 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
-    public ResponseMessage<User> getUserById(Long userId) {
+    public User getUserById(Long userId) {
         User user = userMapper.selectByUserId(userId);
         if (user == null) {
-            return ResponseMessage.error("用户不存在");
+            throw new ServiceException("用户不存在");
         }
-        return ResponseMessage.success(user);
+        return user;
     }
 
     @Override
-    public ResponseMessage<User> getUserByUsername(String username) {
+    public User getUserByUsername(String username) {
         User user = userMapper.selectByUsername(username);
         if (user == null) {
-            return ResponseMessage.error("用户不存在");
+            throw new ServiceException("用户不存在");
         }
-        return ResponseMessage.success(user);
+        return user;
     }
 
     @Override
@@ -52,14 +52,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ResponseMessage<List<User>> getAllUsers() {
-        List<User> users = userMapper.selectAllUsers();
-        return ResponseMessage.success(users);
+    public List<User> getAllUsers() {
+        return userMapper.selectAllUsers();
     }
 
     @Override
-    public ResponseMessage<String> registerUser(User user) {
-        // 兼容微信登录：如果没有密码则跳过加密逻辑
+    public User registerUser(User user) {
         if (user.getPassword() != null && !user.getPassword().isEmpty()) {
             String encodedPassword = passwordEncoder.encode(user.getPassword());
             user.setPassword(encodedPassword);
@@ -87,12 +85,12 @@ public class UserServiceImpl implements UserService {
 
                 int result = userMapper.updateUser(user);
                 if (result > 0) {
-                    return ResponseMessage.success("账号恢复成功", "账号恢复成功");
+                    return userMapper.selectByUserId(user.getUserId());
                 } else {
-                    return ResponseMessage.error("账号恢复失败");
+                    throw new ServiceException("账号恢复失败");
                 }
             } else {
-                return ResponseMessage.error("用户名已存在");
+                throw new ServiceException("用户名已存在");
             }
         }
 
@@ -104,101 +102,94 @@ public class UserServiceImpl implements UserService {
 
         int result = userMapper.insertUser(user);
         if (result > 0) {
-            return ResponseMessage.success("注册成功", "注册成功");
+            return userMapper.selectByUsername(user.getUsername());
         } else {
-            return ResponseMessage.error("注册失败");
+            throw new ServiceException("注册失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> updateUser(User user) {
+    public User updateUser(User user) {
         user.setUpdatedTime(LocalDateTime.now());
         int result = userMapper.updateUser(user);
         if (result > 0) {
-            return ResponseMessage.success("更新成功", "更新成功");
+            return userMapper.selectByUserId(user.getUserId());
         } else {
-            return ResponseMessage.error("更新失败");
+            throw new ServiceException("更新失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> deleteUser(Long userId) {
+    public void deleteUser(Long userId) {
         User user = userMapper.selectByUserId(userId);
         if (user == null) {
-            return ResponseMessage.error("用户不存在");
+            throw new ServiceException("用户不存在");
         }
 
         user.setDeleted(1);
         user.setUpdatedTime(LocalDateTime.now());
         int result = userMapper.updateUser(user);
 
-        if (result > 0) {
-            return ResponseMessage.success("删除成功", "删除成功");
-        } else {
-            return ResponseMessage.error("删除失败");
+        if (result <= 0) {
+            throw new ServiceException("删除失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> login(String username, String password) {
+    public void login(String username, String password) {
         User user = userMapper.selectByUsername(username);
         if (user == null) {
-            return ResponseMessage.error("用户不存在");
+            throw new ServiceException("用户不存在");
         }
 
         if (user.getDeleted() == 1) {
-            return ResponseMessage.error("账号已注销");
+            throw new ServiceException("账号已注销");
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            return ResponseMessage.error("密码错误");
+            throw new ServiceException("密码错误");
         }
 
         if (user.getUserStatus() == 0) {
-            return ResponseMessage.error("用户已被禁用");
+            throw new ServiceException("用户已被禁用");
         }
 
         updateLastLoginTime(user.getUserId());
         userMapper.incrementLoginCount(user.getUserId());
         user.setLastLoginTime(LocalDateTime.now());
-        user.setPassword(null);
-
-        return ResponseMessage.success("登录成功");
     }
 
     @Override
-    public ResponseMessage<String> updateLastLoginTime(Long userId) {
+    public void updateLastLoginTime(Long userId) {
         int result = userMapper.updateLastLoginTime(userId);
-        if (result > 0) {
-            return ResponseMessage.success("更新时间成功", "更新时间成功");
-        } else {
-            return ResponseMessage.error("更新时间失败");
+        if (result <= 0) {
+            throw new ServiceException("更新时间失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> uploadAvatar(Long userId, MultipartFile file) {
+    public String uploadAvatar(Long userId, MultipartFile file) {
         User user = userMapper.selectByUserId(userId);
         if (user == null) {
-            return ResponseMessage.error("用户不存在");
+            throw new ServiceException("用户不存在");
         }
 
         if (file.isEmpty()) {
-            return ResponseMessage.error("上传文件为空");
+            throw new ServiceException("上传文件为空");
         }
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !originalFilename.matches(".*\\.(jpg|jpeg|png|gif|webp)$")) {
-            return ResponseMessage.error("只支持 jpg、jpeg、png、gif、webp 格式的图片");
+            throw new ServiceException("只支持 jpg、jpeg、png、gif、webp 格式的图片");
         }
 
         if (!FileValidator.validateImageFile(file)) {
-            return ResponseMessage.error("文件内容校验失败，请上传有效的图片文件");
+            throw new ServiceException("文件内容校验失败，请上传有效的图片文件");
         }
 
         long fileSize = file.getSize();
         if (fileSize > 5 * 1024 * 1024) {
-            return ResponseMessage.error("文件大小不能超过 5MB");
+            throw new ServiceException("文件大小不能超过 5MB");
         }
 
         String uploadDir = System.getProperty("user.dir") + "/uploads/avatars/";
@@ -220,27 +211,27 @@ public class UserServiceImpl implements UserService {
 
             int result = userMapper.updateUser(user);
             if (result > 0) {
-                return ResponseMessage.success("头像上传成功", "头像上传成功");
+                return avatarUrl;
             } else {
                 Files.deleteIfExists(filePath);
-                return ResponseMessage.error("头像上传失败");
+                throw new ServiceException("头像上传失败");
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseMessage.error("头像上传失败");
+            throw new ServiceException("头像上传失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> deleteAvatar(Long userId) {
+    public void deleteAvatar(Long userId) {
         User user = userMapper.selectByUserId(userId);
         if (user == null) {
-            return ResponseMessage.error("用户不存在");
+            throw new ServiceException("用户不存在");
         }
 
         String avatar = user.getAvatar();
         if (avatar == null || avatar.isEmpty()) {
-            return ResponseMessage.success("头像不存在", "头像不存在");
+            return;
         }
 
         String uploadDir = System.getProperty("user.dir") + "/uploads/avatars/";
@@ -256,14 +247,12 @@ public class UserServiceImpl implements UserService {
             user.setUpdatedTime(LocalDateTime.now());
 
             int result = userMapper.updateUser(user);
-            if (result > 0) {
-                return ResponseMessage.success("头像删除成功", "头像删除成功");
-            } else {
-                return ResponseMessage.error("头像删除失败");
+            if (result <= 0) {
+                throw new ServiceException("头像删除失败");
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseMessage.error("头像删除失败");
+            throw new ServiceException("头像删除失败");
         }
     }
 }

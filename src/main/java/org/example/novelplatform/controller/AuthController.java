@@ -2,6 +2,7 @@ package org.example.novelplatform.controller;
 
 import org.example.novelplatform.service.AuthService;
 import org.example.novelplatform.util.ResponseMessage;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -17,14 +18,16 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseMessage<Map<String, Object>> refresh(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ResponseMessage<Map<String, Object>>> refresh(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
-        return authService.refreshToken(refreshToken);
+        Map<String, Object> tokenData = authService.refreshToken(refreshToken);
+        return ResponseEntity.ok(ResponseMessage.success("刷新成功", tokenData));
     }
 
     @PostMapping("/logout")
-    public ResponseMessage<String> logout(@RequestBody Map<String, String> request) {
+    public ResponseEntity<ResponseMessage<Void>> logout(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
-        return authService.logout(refreshToken);
+        authService.logout(refreshToken);
+        return ResponseEntity.ok(ResponseMessage.success("登出成功", null));
     }
 }

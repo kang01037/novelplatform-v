@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.novelplatform.config.WechatMiniAppConfig;
 import org.example.novelplatform.entity.User;
+import org.example.novelplatform.exception.ServiceException;
 import org.example.novelplatform.service.AuthService;
 import org.example.novelplatform.service.UserService;
 import org.example.novelplatform.service.WechatAuthService;
-import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -31,9 +31,9 @@ public class WechatAuthServiceImpl implements WechatAuthService {
     }
 
     @Override
-    public ResponseMessage<Map<String, Object>> login(String code, String nickname, String avatarUrl) {
+    public Map<String, Object> login(String code, String nickname, String avatarUrl) {
         if (code == null || code.isEmpty()) {
-            return ResponseMessage.error("登录码不能为空");
+            throw new ServiceException("登录码不能为空");
         }
 
         try {
@@ -48,7 +48,7 @@ public class WechatAuthServiceImpl implements WechatAuthService {
             JsonNode jsonNode = objectMapper.readTree(response);
 
             if (jsonNode.has("errcode")) {
-                return ResponseMessage.error("微信登录失败: " + jsonNode.get("errmsg").asText());
+                throw new ServiceException("微信登录失败: " + jsonNode.get("errmsg").asText());
             }
 
             String openid = jsonNode.get("openid").asText();
@@ -68,9 +68,11 @@ public class WechatAuthServiceImpl implements WechatAuthService {
 
             return authService.generateTokenPair(user);
 
+        } catch (ServiceException e) {
+            throw e;
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseMessage.error("系统错误，请稍后重试");
+            throw new ServiceException("系统错误，请稍后重试");
         }
     }
 }

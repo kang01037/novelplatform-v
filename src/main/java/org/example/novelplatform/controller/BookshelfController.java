@@ -3,7 +3,6 @@ package org.example.novelplatform.controller;
 import org.example.novelplatform.entity.Bookshelf;
 import org.example.novelplatform.service.BookshelfService;
 import org.example.novelplatform.util.ResponseMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,100 +13,81 @@ import java.util.Map;
 @RequestMapping("/api/bookshelf")
 public class BookshelfController {
 
-    @Autowired
-    private BookshelfService bookshelfService;
+    private final BookshelfService bookshelfService;
+
+    public BookshelfController(BookshelfService bookshelfService) {
+        this.bookshelfService = bookshelfService;
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseMessage<Bookshelf>> getBookshelfById(@PathVariable Long id) {
-        ResponseMessage<Bookshelf> response = bookshelfService.getBookshelfById(id);
-        if (response.getData() == null) {
-            return ResponseEntity.status(404).body(response);
-        }
-        return ResponseEntity.ok(response);
+        Bookshelf bookshelf = bookshelfService.getBookshelfById(id);
+        return ResponseEntity.ok(ResponseMessage.success(bookshelf));
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<ResponseMessage<List<Bookshelf>>> getBookshelfByUserId(@PathVariable Long userId) {
-        ResponseMessage<List<Bookshelf>> response = bookshelfService.getBookshelfByUserId(userId);
-        return ResponseEntity.ok(response);
+        List<Bookshelf> bookshelves = bookshelfService.getBookshelfByUserId(userId);
+        return ResponseEntity.ok(ResponseMessage.success(bookshelves));
     }
 
     @GetMapping("/user/{userId}/novel/{novelId}")
     public ResponseEntity<ResponseMessage<Bookshelf>> getBookshelfByUserIdAndNovelId(
             @PathVariable Long userId,
             @PathVariable Long novelId) {
-        ResponseMessage<Bookshelf> response = bookshelfService.getBookshelfByUserIdAndNovelId(userId, novelId);
-        if (response.getData() == null) {
-            return ResponseEntity.status(404).body(response);
-        }
-        return ResponseEntity.ok(response);
+        Bookshelf bookshelf = bookshelfService.getBookshelfByUserIdAndNovelId(userId, novelId);
+        return ResponseEntity.ok(ResponseMessage.success(bookshelf));
     }
 
     @GetMapping("/check")
     public ResponseEntity<ResponseMessage<Boolean>> checkIfAdded(
             @RequestParam Long userId,
             @RequestParam Long novelId) {
-        ResponseMessage<Boolean> response = bookshelfService.checkIfAdded(userId, novelId);
-        return ResponseEntity.ok(response);
+        boolean isAdded = bookshelfService.checkIfAdded(userId, novelId);
+        return ResponseEntity.ok(ResponseMessage.success(isAdded));
     }
 
     @GetMapping("/user/{userId}/count")
     public ResponseEntity<ResponseMessage<Integer>> getBookshelfCount(@PathVariable Long userId) {
-        ResponseMessage<Integer> response = bookshelfService.getBookshelfCount(userId);
-        return ResponseEntity.ok(response);
+        int count = bookshelfService.getBookshelfCount(userId);
+        return ResponseEntity.ok(ResponseMessage.success(count));
     }
 
     @PostMapping("/add")
-    public ResponseEntity<ResponseMessage<String>> addToBookshelf(@RequestBody Map<String, Long> requestData) {
+    public ResponseEntity<ResponseMessage<Bookshelf>> addToBookshelf(@RequestBody Map<String, Long> requestData) {
         Long userId = requestData.get("userId");
         Long novelId = requestData.get("novelId");
 
-        ResponseMessage<String> response = bookshelfService.addToBookshelf(userId, novelId);
-        if ("加入书架成功".equals(response.getMessage())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        Bookshelf bookshelf = bookshelfService.addToBookshelf(userId, novelId);
+        return ResponseEntity.ok(ResponseMessage.success("加入书架成功", bookshelf));
     }
 
     @DeleteMapping("/remove")
-    public ResponseEntity<ResponseMessage<String>> removeFromBookshelf(@RequestBody Map<String, Long> requestData) {
+    public ResponseEntity<ResponseMessage<Void>> removeFromBookshelf(@RequestBody Map<String, Long> requestData) {
         Long userId = requestData.get("userId");
         Long novelId = requestData.get("novelId");
 
-        ResponseMessage<String> response = bookshelfService.removeFromBookshelf(userId, novelId);
-        if ("移出书架成功".equals(response.getMessage())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        bookshelfService.removeFromBookshelf(userId, novelId);
+        return ResponseEntity.ok(ResponseMessage.success("移出书架成功", null));
     }
 
     @DeleteMapping("/remove/batch")
-    public ResponseEntity<ResponseMessage<String>> removeFromBookshelfBatch(@RequestBody Map<String, Object> requestData) {
+    public ResponseEntity<ResponseMessage<Void>> removeFromBookshelfBatch(@RequestBody Map<String, Object> requestData) {
         Long userId = ((Number) requestData.get("userId")).longValue();
         @SuppressWarnings("unchecked")
         List<Long> novelIds = (List<Long>) requestData.get("novelIds");
 
-        ResponseMessage<String> response = bookshelfService.removeFromBookshelfBatch(userId, novelIds);
-        if ("批量移出书架成功".equals(response.getMessage())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        bookshelfService.removeFromBookshelfBatch(userId, novelIds);
+        return ResponseEntity.ok(ResponseMessage.success("批量移出书架成功", null));
     }
 
     @PutMapping("/reading-progress")
-    public ResponseEntity<ResponseMessage<String>> updateReadingProgress(@RequestBody Map<String, Long> requestData) {
+    public ResponseEntity<ResponseMessage<Bookshelf>> updateReadingProgress(@RequestBody Map<String, Long> requestData) {
         Long userId = requestData.get("userId");
         Long novelId = requestData.get("novelId");
         Long chapterId = requestData.get("chapterId");
 
-        ResponseMessage<String> response = bookshelfService.updateReadingProgress(userId, novelId, chapterId);
-        if ("阅读进度已更新".equals(response.getMessage())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        Bookshelf bookshelf = bookshelfService.updateReadingProgress(userId, novelId, chapterId);
+        return ResponseEntity.ok(ResponseMessage.success("阅读进度已更新", bookshelf));
     }
 }

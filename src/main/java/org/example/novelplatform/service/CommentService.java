@@ -1,37 +1,36 @@
 package org.example.novelplatform.service;
 
 import org.example.novelplatform.entity.Comment;
-import org.example.novelplatform.util.ResponseMessage;
 
 import java.util.List;
 
 public interface CommentService {
 
-    ResponseMessage<Comment> getCommentById(Long commentId);
+    Comment getCommentById(Long commentId);
 
-    ResponseMessage<List<Comment>> getCommentsByNovelId(Long novelId, Integer page, Integer size);
+    List<Comment> getCommentsByNovelId(Long novelId, Integer page, Integer size);
 
-    ResponseMessage<List<Comment>> getCommentsByChapterId(Long chapterId, Integer page, Integer size);
+    List<Comment> getCommentsByChapterId(Long chapterId, Integer page, Integer size);
 
-    ResponseMessage<List<Comment>> getCommentsByUserId(Long userId, Integer page, Integer size);
+    List<Comment> getCommentsByUserId(Long userId, Integer page, Integer size);
 
-    ResponseMessage<List<Comment>> getAllComments(Integer page, Integer size);
+    List<Comment> getAllComments(Integer page, Integer size);
 
-    ResponseMessage<List<Comment>> getCommentReplies(Long parentId);
+    List<Comment> getCommentReplies(Long parentId);
 
-    ResponseMessage<Integer> getCommentCountByNovelId(Long novelId);
+    int getCommentCountByNovelId(Long novelId);
 
-    ResponseMessage<Integer> getCommentCountByUserId(Long userId);
+    int getCommentCountByUserId(Long userId);
 
-    ResponseMessage<String> createComment(Comment comment);
+    Comment createComment(Comment comment);
 
-    ResponseMessage<String> updateComment(Comment comment);
+    Comment updateComment(Comment comment);
 
-    ResponseMessage<String> deleteComment(Long commentId);
+    void deleteComment(Long commentId);
 
-    ResponseMessage<String> deleteBatchComments(List<Long> commentIds);
+    void deleteBatchComments(List<Long> commentIds);
 
-    ResponseMessage<String> likeComment(Long commentId);
+    void likeComment(Long commentId);
 
-    ResponseMessage<String> unlikeComment(Long commentId);
+    void unlikeComment(Long commentId);
 }

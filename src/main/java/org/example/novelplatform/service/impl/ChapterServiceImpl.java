@@ -2,10 +2,10 @@ package org.example.novelplatform.service.impl;
 
 import org.example.novelplatform.entity.Chapter;
 import org.example.novelplatform.entity.Novel;
+import org.example.novelplatform.exception.ServiceException;
 import org.example.novelplatform.mapper.ChapterMapper;
 import org.example.novelplatform.mapper.NovelMapper;
 import org.example.novelplatform.service.ChapterService;
-import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,44 +23,43 @@ public class ChapterServiceImpl implements ChapterService {
     private NovelMapper novelMapper;
 
     @Override
-    public ResponseMessage<Chapter> getChapterById(Long chapterId) {
+    public Chapter getChapterById(Long chapterId) {
         Chapter chapter = chapterMapper.selectByChapterId(chapterId);
         if (chapter == null) {
-            return ResponseMessage.error("章节不存在");
+            throw new ServiceException("章节不存在");
         }
-        return ResponseMessage.success(chapter);
+        return chapter;
     }
 
     @Override
-    public ResponseMessage<List<Chapter>> getChaptersByNovelId(Long novelId) {
-        List<Chapter> chapters = chapterMapper.selectByNovelId(novelId);
-        return ResponseMessage.success(chapters);
+    public List<Chapter> getChaptersByNovelId(Long novelId) {
+        return chapterMapper.selectByNovelId(novelId);
     }
 
     @Override
-    public ResponseMessage<Chapter> getChapterByNovelIdAndNum(Long novelId, Integer chapterNum) {
+    public Chapter getChapterByNovelIdAndNum(Long novelId, Integer chapterNum) {
         Chapter chapter = chapterMapper.selectByNovelIdAndChapterNum(novelId, chapterNum);
         if (chapter == null) {
-            return ResponseMessage.error("章节不存在");
+            throw new ServiceException("章节不存在");
         }
-        return ResponseMessage.success(chapter);
+        return chapter;
     }
 
     @Override
-    public ResponseMessage<Chapter> getLatestChapter(Long novelId) {
+    public Chapter getLatestChapter(Long novelId) {
         Chapter chapter = chapterMapper.selectLatestChapter(novelId);
         if (chapter == null) {
-            return ResponseMessage.error("暂无章节");
+            throw new ServiceException("暂无章节");
         }
-        return ResponseMessage.success(chapter);
+        return chapter;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> createChapter(Chapter chapter) {
+    public Chapter createChapter(Chapter chapter) {
         Novel novel = novelMapper.selectByNovelId(chapter.getNovelId());
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         chapter.setCreateTime(LocalDateTime.now());
@@ -74,18 +73,18 @@ public class ChapterServiceImpl implements ChapterService {
         int result = chapterMapper.insertChapter(chapter);
         if (result > 0) {
             updateNovelLastChapter(novel.getNovelId(), chapter);
-            return ResponseMessage.success("章节创建成功", "章节创建成功");
+            return chapterMapper.selectByChapterId(chapter.getChapterId());
         } else {
-            return ResponseMessage.error("章节创建失败");
+            throw new ServiceException("章节创建失败");
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> updateChapter(Chapter chapter) {
+    public Chapter updateChapter(Chapter chapter) {
         Chapter existingChapter = chapterMapper.selectByChapterId(chapter.getChapterId());
         if (existingChapter == null) {
-            return ResponseMessage.error("章节不存在");
+            throw new ServiceException("章节不存在");
         }
 
         chapter.setUpdateTime(LocalDateTime.now());
@@ -99,51 +98,47 @@ public class ChapterServiceImpl implements ChapterService {
             if (isLatestChapter(existingChapter.getNovelId(), chapter.getChapterId())) {
                 updateNovelLastChapter(existingChapter.getNovelId(), chapter);
             }
-            return ResponseMessage.success("更新成功", "更新成功");
+            return chapterMapper.selectByChapterId(chapter.getChapterId());
         } else {
-            return ResponseMessage.error("更新失败");
+            throw new ServiceException("更新失败");
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> deleteChapter(Long chapterId) {
+    public void deleteChapter(Long chapterId) {
         Chapter chapter = chapterMapper.selectByChapterId(chapterId);
         if (chapter == null) {
-            return ResponseMessage.error("章节不存在");
+            throw new ServiceException("章节不存在");
         }
 
         int result = chapterMapper.deleteChapter(chapterId);
-        if (result > 0) {
-            Chapter newLatestChapter = chapterMapper.selectLatestChapter(chapter.getNovelId());
-            if (newLatestChapter != null) {
-                updateNovelLastChapter(chapter.getNovelId(), newLatestChapter);
-            }
-            return ResponseMessage.success("删除成功", "删除成功");
-        } else {
-            return ResponseMessage.error("删除失败");
+        if (result <= 0) {
+            throw new ServiceException("删除失败");
+        }
+
+        Chapter newLatestChapter = chapterMapper.selectLatestChapter(chapter.getNovelId());
+        if (newLatestChapter != null) {
+            updateNovelLastChapter(chapter.getNovelId(), newLatestChapter);
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> deleteBatchChapters(List<Long> chapterIds) {
+    public void deleteBatchChapters(List<Long> chapterIds) {
         if (chapterIds == null || chapterIds.isEmpty()) {
-            return ResponseMessage.error("章节 ID 不能为空");
+            throw new ServiceException("章节 ID 不能为空");
         }
 
         int result = chapterMapper.deleteBatchChapters(chapterIds);
-        if (result > 0) {
-            return ResponseMessage.success("批量删除成功", "批量删除成功");
-        } else {
-            return ResponseMessage.error("批量删除失败");
+        if (result <= 0) {
+            throw new ServiceException("批量删除失败");
         }
     }
 
     @Override
-    public ResponseMessage<Integer> getChapterCount(Long novelId) {
-        int count = chapterMapper.countByNovelId(novelId);
-        return ResponseMessage.success(count);
+    public int getChapterCount(Long novelId) {
+        return chapterMapper.countByNovelId(novelId);
     }
 
     private void updateNovelLastChapter(Long novelId, Chapter chapter) {

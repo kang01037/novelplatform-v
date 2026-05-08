@@ -1,7 +1,6 @@
 package org.example.novelplatform.service;
 
 import org.example.novelplatform.entity.Novel;
-import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -9,34 +8,33 @@ import java.util.List;
 
 public interface NovelService {
 
-    ResponseMessage<Novel> getNovelById(Long novelId);
+    Novel getNovelById(Long novelId);
 
-    ResponseMessage<List<Novel>> getAllNovels();
+    List<Novel> getAllNovels();
 
-    ResponseMessage<List<Novel>> getNovelsByAuthorId(Long authorId);
+    List<Novel> getNovelsByAuthorId(Long authorId);
 
-    ResponseMessage<List<Novel>> getNovelsByCategoryId(Long categoryId);
+    List<Novel> getNovelsByCategoryId(Long categoryId);
 
-    ResponseMessage<String> createNovel(Novel novel);
+    Novel createNovel(Novel novel);
 
-    ResponseMessage<String> updateNovel(Novel novel);
+    Novel updateNovel(Novel novel);
 
-    ResponseMessage<String> deleteNovel(Long novelId);
+    void deleteNovel(Long novelId);
 
-    ResponseMessage<String> incrementClickCount(Long novelId);
+    void incrementClickCount(Long novelId);
 
-    ResponseMessage<String> incrementCollectCount(Long novelId);
+    void incrementCollectCount(Long novelId);
 
-    ResponseMessage<String> incrementRecommendCount(Long novelId);
+    void incrementRecommendCount(Long novelId);
 
-    ResponseMessage<String> rateNovel(Long novelId, BigDecimal score);
+    void rateNovel(Long novelId, BigDecimal score);
 
-    ResponseMessage<List<Novel>> getHotNovels(Integer limit);
+    List<Novel> getHotNovels(Integer limit);
 
-    ResponseMessage<List<Novel>> getLatestNovels(Integer limit);
+    List<Novel> getLatestNovels(Integer limit);
 
-    ResponseMessage<List<Novel>> searchNovels(String novelName);
+    List<Novel> searchNovels(String novelName);
 
-    ResponseMessage<String> uploadCover(Long novelId, MultipartFile file);
-
+    String uploadCover(Long novelId, MultipartFile file);
 }

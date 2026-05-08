@@ -5,7 +5,6 @@ import org.example.novelplatform.service.AuthService;
 import org.example.novelplatform.service.FileService;
 import org.example.novelplatform.service.UserService;
 import org.example.novelplatform.util.ResponseMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,66 +16,50 @@ import java.util.Map;
 @RequestMapping("/api/user")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final AuthService authService;
+    private final FileService fileService;
 
-    @Autowired
-    private AuthService authService;
-
-    @Autowired
-    private FileService fileService;
+    public UserController(UserService userService, AuthService authService, FileService fileService) {
+        this.userService = userService;
+        this.authService = authService;
+        this.fileService = fileService;
+    }
 
     @GetMapping("/{userId}")
     public ResponseEntity<ResponseMessage<User>> getUserById(@PathVariable Long userId) {
-        ResponseMessage<User> response = userService.getUserById(userId);
-        if (response.getData() == null) {
-            return ResponseEntity.status(404).body(response);
-        }
-        return ResponseEntity.ok(response);
+        User user = userService.getUserById(userId);
+        return ResponseEntity.ok(ResponseMessage.success(user));
     }
 
     @GetMapping("/username/{username}")
     public ResponseEntity<ResponseMessage<User>> getUserByUsername(@PathVariable String username) {
-        ResponseMessage<User> response = userService.getUserByUsername(username);
-        if (response.getData() == null) {
-            return ResponseEntity.status(404).body(response);
-        }
-        return ResponseEntity.ok(response);
+        User user = userService.getUserByUsername(username);
+        return ResponseEntity.ok(ResponseMessage.success(user));
     }
 
     @GetMapping("/list")
     public ResponseEntity<ResponseMessage<List<User>>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+        List<User> users = userService.getAllUsers();
+        return ResponseEntity.ok(ResponseMessage.success(users));
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseMessage<String>> register(@RequestBody User user) {
-        ResponseMessage<String> response = userService.registerUser(user);
-        if ("注册成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+    public ResponseEntity<ResponseMessage<User>> register(@RequestBody User user) {
+        User registeredUser = userService.registerUser(user);
+        return ResponseEntity.ok(ResponseMessage.success("注册成功", registeredUser));
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResponseMessage<String>> updateUser(@RequestBody User user) {
-        ResponseMessage<String> response = userService.updateUser(user);
-        if ("更新成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.internalServerError().body(response);
-        }
+    public ResponseEntity<ResponseMessage<User>> updateUser(@RequestBody User user) {
+        User updatedUser = userService.updateUser(user);
+        return ResponseEntity.ok(ResponseMessage.success("更新成功", updatedUser));
     }
 
     @DeleteMapping("/delete/{userId}")
-    public ResponseEntity<ResponseMessage<String>> deleteUser(@PathVariable Long userId) {
-        ResponseMessage<String> response = userService.deleteUser(userId);
-        if ("删除成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.internalServerError().body(response);
-        }
+    public ResponseEntity<ResponseMessage<Void>> deleteUser(@PathVariable Long userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok(ResponseMessage.success("删除成功", null));
     }
 
     @PostMapping("/login")
@@ -84,24 +67,16 @@ public class UserController {
         String username = loginData.get("username");
         String password = loginData.get("password");
 
-        ResponseMessage<Map<String, Object>> response = authService.login(username, password);
-        if (response.getCode() == 200) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(401).body(response);
-        }
+        Map<String, Object> loginData_result = authService.login(username, password);
+        return ResponseEntity.ok(ResponseMessage.success("登录成功", loginData_result));
     }
 
     @PostMapping("/upload/avatar")
     public ResponseEntity<ResponseMessage<String>> uploadAvatar(
             @RequestParam("userId") Long userId,
             @RequestParam("file") MultipartFile file) {
-        ResponseMessage<String> response = userService.uploadAvatar(userId, file);
-        if ("头像上传成功".equals(response.getMessage())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+        String avatarUrl = userService.uploadAvatar(userId, file);
+        return ResponseEntity.ok(ResponseMessage.success("头像上传成功", avatarUrl));
     }
 
     @GetMapping("/avatar/{filename}")
@@ -110,12 +85,8 @@ public class UserController {
     }
 
     @DeleteMapping("/avatar/{userId}")
-    public ResponseEntity<ResponseMessage<String>> deleteAvatar(@PathVariable Long userId) {
-        ResponseMessage<String> response = userService.deleteAvatar(userId);
-        if ("头像删除成功".equals(response.getData()) || "头像不存在".equals(response.getMessage())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+    public ResponseEntity<ResponseMessage<Void>> deleteAvatar(@PathVariable Long userId) {
+        userService.deleteAvatar(userId);
+        return ResponseEntity.ok(ResponseMessage.success("头像删除成功", null));
     }
 }

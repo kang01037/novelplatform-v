@@ -1,10 +1,10 @@
 package org.example.novelplatform.service.impl;
 
 import org.example.novelplatform.entity.Novel;
+import org.example.novelplatform.exception.ServiceException;
 import org.example.novelplatform.mapper.NovelMapper;
 import org.example.novelplatform.service.NovelService;
 import org.example.novelplatform.util.FileValidator;
-import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,34 +26,31 @@ public class NovelServiceImpl implements NovelService {
     private NovelMapper novelMapper;
 
     @Override
-    public ResponseMessage<Novel> getNovelById(Long novelId) {
+    public Novel getNovelById(Long novelId) {
         Novel novel = novelMapper.selectByNovelId(novelId);
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
-        return ResponseMessage.success(novel);
+        return novel;
     }
 
     @Override
-    public ResponseMessage<List<Novel>> getAllNovels() {
-        List<Novel> novels = novelMapper.selectAllNovels();
-        return ResponseMessage.success(novels);
+    public List<Novel> getAllNovels() {
+        return novelMapper.selectAllNovels();
     }
 
     @Override
-    public ResponseMessage<List<Novel>> getNovelsByAuthorId(Long authorId) {
-        List<Novel> novels = novelMapper.selectByAuthorId(authorId);
-        return ResponseMessage.success(novels);
+    public List<Novel> getNovelsByAuthorId(Long authorId) {
+        return novelMapper.selectByAuthorId(authorId);
     }
 
     @Override
-    public ResponseMessage<List<Novel>> getNovelsByCategoryId(Long categoryId) {
-        List<Novel> novels = novelMapper.selectByCategoryId(categoryId);
-        return ResponseMessage.success(novels);
+    public List<Novel> getNovelsByCategoryId(Long categoryId) {
+        return novelMapper.selectByCategoryId(categoryId);
     }
 
     @Override
-    public ResponseMessage<String> createNovel(Novel novel) {
+    public Novel createNovel(Novel novel) {
         novel.setCreatedTime(LocalDateTime.now());
         novel.setUpdatedTime(LocalDateTime.now());
         novel.setDeleted(0);
@@ -66,148 +63,135 @@ public class NovelServiceImpl implements NovelService {
 
         int result = novelMapper.insertNovel(novel);
         if (result > 0) {
-            return ResponseMessage.success("小说创建成功", "小说创建成功");
+            return novelMapper.selectByNovelId(novel.getNovelId());
         } else {
-            return ResponseMessage.error("小说创建失败");
+            throw new ServiceException("小说创建失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> updateNovel(Novel novel) {
+    public Novel updateNovel(Novel novel) {
         Novel existingNovel = novelMapper.selectByNovelId(novel.getNovelId());
         if (existingNovel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         novel.setUpdatedTime(LocalDateTime.now());
         int result = novelMapper.updateNovel(novel);
         if (result > 0) {
-            return ResponseMessage.success("更新成功", "更新成功");
+            return novelMapper.selectByNovelId(novel.getNovelId());
         } else {
-            return ResponseMessage.error("更新失败");
+            throw new ServiceException("更新失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> deleteNovel(Long novelId) {
+    public void deleteNovel(Long novelId) {
         Novel novel = novelMapper.selectByNovelId(novelId);
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         int result = novelMapper.deleteNovel(novelId);
-        if (result > 0) {
-            return ResponseMessage.success("删除成功", "删除成功");
-        } else {
-            return ResponseMessage.error("删除失败");
+        if (result <= 0) {
+            throw new ServiceException("删除失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> incrementClickCount(Long novelId) {
+    public void incrementClickCount(Long novelId) {
         Novel novel = novelMapper.selectByNovelId(novelId);
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         int result = novelMapper.incrementClickCount(novelId);
-        if (result > 0) {
-            return ResponseMessage.success("点击量已更新", "点击量已更新");
-        } else {
-            return ResponseMessage.error("更新失败");
+        if (result <= 0) {
+            throw new ServiceException("更新失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> incrementCollectCount(Long novelId) {
+    public void incrementCollectCount(Long novelId) {
         Novel novel = novelMapper.selectByNovelId(novelId);
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         int result = novelMapper.incrementCollectCount(novelId);
-        if (result > 0) {
-            return ResponseMessage.success("收藏量已更新", "收藏量已更新");
-        } else {
-            return ResponseMessage.error("更新失败");
+        if (result <= 0) {
+            throw new ServiceException("更新失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> incrementRecommendCount(Long novelId) {
+    public void incrementRecommendCount(Long novelId) {
         Novel novel = novelMapper.selectByNovelId(novelId);
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         int result = novelMapper.incrementRecommendCount(novelId);
-        if (result > 0) {
-            return ResponseMessage.success("推荐量已更新", "推荐量已更新");
-        } else {
-            return ResponseMessage.error("更新失败");
+        if (result <= 0) {
+            throw new ServiceException("更新失败");
         }
     }
 
     @Override
-    public ResponseMessage<String> rateNovel(Long novelId, BigDecimal score) {
+    public void rateNovel(Long novelId, BigDecimal score) {
         Novel novel = novelMapper.selectByNovelId(novelId);
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         if (score.compareTo(BigDecimal.ZERO) < 0 || score.compareTo(BigDecimal.TEN) > 0) {
-            return ResponseMessage.error("评分必须在 0-10 之间");
+            throw new ServiceException("评分必须在 0-10 之间");
         }
 
         int result = novelMapper.updateScore(novelId, score);
-        if (result > 0) {
-            return ResponseMessage.success("评分成功", "评分成功");
-        } else {
-            return ResponseMessage.error("评分失败");
+        if (result <= 0) {
+            throw new ServiceException("评分失败");
         }
     }
 
     @Override
-    public ResponseMessage<List<Novel>> getHotNovels(Integer limit) {
-        List<Novel> novels = novelMapper.selectHotNovels(limit);
-        return ResponseMessage.success(novels);
+    public List<Novel> getHotNovels(Integer limit) {
+        return novelMapper.selectHotNovels(limit);
     }
 
     @Override
-    public ResponseMessage<List<Novel>> getLatestNovels(Integer limit) {
-        List<Novel> novels = novelMapper.selectLatestNovels(limit);
-        return ResponseMessage.success(novels);
+    public List<Novel> getLatestNovels(Integer limit) {
+        return novelMapper.selectLatestNovels(limit);
     }
 
     @Override
-    public ResponseMessage<List<Novel>> searchNovels(String novelName) {
-        List<Novel> novels = novelMapper.selectByNovelNameLike(novelName);
-        return ResponseMessage.success(novels);
+    public List<Novel> searchNovels(String novelName) {
+        return novelMapper.selectByNovelNameLike(novelName);
     }
 
     @Override
-    public ResponseMessage<String> uploadCover(Long novelId, MultipartFile file) {
+    public String uploadCover(Long novelId, MultipartFile file) {
         Novel novel = novelMapper.selectByNovelId(novelId);
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         if (file.isEmpty()) {
-            return ResponseMessage.error("上传文件为空");
+            throw new ServiceException("上传文件为空");
         }
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !originalFilename.matches(".*\\.(jpg|jpeg|png|gif|webp)$")) {
-            return ResponseMessage.error("只支持 jpg、jpeg、png、gif、webp 格式的图片");
+            throw new ServiceException("只支持 jpg、jpeg、png、gif、webp 格式的图片");
         }
 
         if (!FileValidator.validateImageFile(file)) {
-            return ResponseMessage.error("文件内容校验失败，请上传有效的图片文件");
+            throw new ServiceException("文件内容校验失败，请上传有效的图片文件");
         }
 
         long fileSize = file.getSize();
         if (fileSize > 5 * 1024 * 1024) {
-            return ResponseMessage.error("文件大小不能超过 5MB");
+            throw new ServiceException("文件大小不能超过 5MB");
         }
 
         String uploadDir = System.getProperty("user.dir") + "/uploads/covers/";
@@ -229,14 +213,14 @@ public class NovelServiceImpl implements NovelService {
 
             int result = novelMapper.updateNovel(novel);
             if (result > 0) {
-                return ResponseMessage.success("封面上传成功", "封面上传成功");
+                return coverUrl;
             } else {
                 Files.deleteIfExists(filePath);
-                return ResponseMessage.error("封面上传失败");
+                throw new ServiceException("封面上传失败");
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseMessage.error("封面上传失败");
+            throw new ServiceException("封面上传失败");
         }
     }
 }

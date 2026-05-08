@@ -3,7 +3,6 @@ package org.example.novelplatform.controller;
 import org.example.novelplatform.entity.Comment;
 import org.example.novelplatform.service.CommentService;
 import org.example.novelplatform.util.ResponseMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,16 +12,16 @@ import java.util.List;
 @RequestMapping("/api/comment")
 public class CommentController {
 
-    @Autowired
-    private CommentService commentService;
+    private final CommentService commentService;
+
+    public CommentController(CommentService commentService) {
+        this.commentService = commentService;
+    }
 
     @GetMapping("/{commentId}")
     public ResponseEntity<ResponseMessage<Comment>> getCommentById(@PathVariable Long commentId) {
-        ResponseMessage<Comment> response = commentService.getCommentById(commentId);
-        if (response.getData() == null) {
-            return ResponseEntity.status(404).body(response);
-        }
-        return ResponseEntity.ok(response);
+        Comment comment = commentService.getCommentById(commentId);
+        return ResponseEntity.ok(ResponseMessage.success(comment));
     }
 
     @GetMapping("/novel/{novelId}")
@@ -30,8 +29,8 @@ public class CommentController {
             @PathVariable Long novelId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size) {
-        ResponseMessage<List<Comment>> response = commentService.getCommentsByNovelId(novelId, page, size);
-        return ResponseEntity.ok(response);
+        List<Comment> comments = commentService.getCommentsByNovelId(novelId, page, size);
+        return ResponseEntity.ok(ResponseMessage.success(comments));
     }
 
     @GetMapping("/chapter/{chapterId}")
@@ -39,8 +38,8 @@ public class CommentController {
             @PathVariable Long chapterId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size) {
-        ResponseMessage<List<Comment>> response = commentService.getCommentsByChapterId(chapterId, page, size);
-        return ResponseEntity.ok(response);
+        List<Comment> comments = commentService.getCommentsByChapterId(chapterId, page, size);
+        return ResponseEntity.ok(ResponseMessage.success(comments));
     }
 
     @GetMapping("/user/{userId}")
@@ -48,94 +47,69 @@ public class CommentController {
             @PathVariable Long userId,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size) {
-        ResponseMessage<List<Comment>> response = commentService.getCommentsByUserId(userId, page, size);
-        return ResponseEntity.ok(response);
+        List<Comment> comments = commentService.getCommentsByUserId(userId, page, size);
+        return ResponseEntity.ok(ResponseMessage.success(comments));
     }
 
     @GetMapping("/replies/{parentId}")
     public ResponseEntity<ResponseMessage<List<Comment>>> getCommentReplies(@PathVariable Long parentId) {
-        ResponseMessage<List<Comment>> response = commentService.getCommentReplies(parentId);
-        return ResponseEntity.ok(response);
+        List<Comment> replies = commentService.getCommentReplies(parentId);
+        return ResponseEntity.ok(ResponseMessage.success(replies));
     }
 
     @GetMapping("/novel/{novelId}/count")
     public ResponseEntity<ResponseMessage<Integer>> getCommentCountByNovelId(@PathVariable Long novelId) {
-        ResponseMessage<Integer> response = commentService.getCommentCountByNovelId(novelId);
-        return ResponseEntity.ok(response);
+        int count = commentService.getCommentCountByNovelId(novelId);
+        return ResponseEntity.ok(ResponseMessage.success(count));
     }
 
     @GetMapping("/user/{userId}/count")
     public ResponseEntity<ResponseMessage<Integer>> getCommentCountByUserId(@PathVariable Long userId) {
-        ResponseMessage<Integer> response = commentService.getCommentCountByUserId(userId);
-        return ResponseEntity.ok(response);
+        int count = commentService.getCommentCountByUserId(userId);
+        return ResponseEntity.ok(ResponseMessage.success(count));
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ResponseMessage<String>> createComment(@RequestBody Comment comment) {
-        ResponseMessage<String> response = commentService.createComment(comment);
-        if ("评论成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+    public ResponseEntity<ResponseMessage<Comment>> createComment(@RequestBody Comment comment) {
+        Comment createdComment = commentService.createComment(comment);
+        return ResponseEntity.ok(ResponseMessage.success("评论成功", createdComment));
     }
 
     @PutMapping("/update")
-    public ResponseEntity<ResponseMessage<String>> updateComment(@RequestBody Comment comment) {
-        ResponseMessage<String> response = commentService.updateComment(comment);
-        if ("更新成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.internalServerError().body(response);
-        }
+    public ResponseEntity<ResponseMessage<Comment>> updateComment(@RequestBody Comment comment) {
+        Comment updatedComment = commentService.updateComment(comment);
+        return ResponseEntity.ok(ResponseMessage.success("更新成功", updatedComment));
     }
 
     @DeleteMapping("/delete/{commentId}")
-    public ResponseEntity<ResponseMessage<String>> deleteComment(@PathVariable Long commentId) {
-        ResponseMessage<String> response = commentService.deleteComment(commentId);
-        if ("删除成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.internalServerError().body(response);
-        }
+    public ResponseEntity<ResponseMessage<Void>> deleteComment(@PathVariable Long commentId) {
+        commentService.deleteComment(commentId);
+        return ResponseEntity.ok(ResponseMessage.success("删除成功", null));
     }
 
     @DeleteMapping("/delete/batch")
-    public ResponseEntity<ResponseMessage<String>> deleteBatchComments(@RequestBody List<Long> commentIds) {
-        ResponseMessage<String> response = commentService.deleteBatchComments(commentIds);
-        if ("批量删除成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+    public ResponseEntity<ResponseMessage<Void>> deleteBatchComments(@RequestBody List<Long> commentIds) {
+        commentService.deleteBatchComments(commentIds);
+        return ResponseEntity.ok(ResponseMessage.success("批量删除成功", null));
     }
 
     @PostMapping("/{commentId}/like")
-    public ResponseEntity<ResponseMessage<String>> likeComment(@PathVariable Long commentId) {
-        ResponseMessage<String> response = commentService.likeComment(commentId);
-        if ("点赞成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+    public ResponseEntity<ResponseMessage<Void>> likeComment(@PathVariable Long commentId) {
+        commentService.likeComment(commentId);
+        return ResponseEntity.ok(ResponseMessage.success("点赞成功", null));
     }
 
     @GetMapping("/all")
     public ResponseEntity<ResponseMessage<List<Comment>>> getAllComments(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "20") Integer size) {
-        ResponseMessage<List<Comment>> response = commentService.getAllComments(page, size);
-        return ResponseEntity.ok(response);
+        List<Comment> comments = commentService.getAllComments(page, size);
+        return ResponseEntity.ok(ResponseMessage.success(comments));
     }
 
-
     @PostMapping("/{commentId}/unlike")
-    public ResponseEntity<ResponseMessage<String>> unlikeComment(@PathVariable Long commentId) {
-        ResponseMessage<String> response = commentService.unlikeComment(commentId);
-        if ("取消点赞成功".equals(response.getData())) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.badRequest().body(response);
-        }
+    public ResponseEntity<ResponseMessage<Void>> unlikeComment(@PathVariable Long commentId) {
+        commentService.unlikeComment(commentId);
+        return ResponseEntity.ok(ResponseMessage.success("取消点赞成功", null));
     }
 }

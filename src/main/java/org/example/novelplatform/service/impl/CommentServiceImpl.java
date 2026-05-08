@@ -2,10 +2,10 @@ package org.example.novelplatform.service.impl;
 
 import org.example.novelplatform.entity.Comment;
 import org.example.novelplatform.entity.Novel;
+import org.example.novelplatform.exception.ServiceException;
 import org.example.novelplatform.mapper.CommentMapper;
 import org.example.novelplatform.mapper.NovelMapper;
 import org.example.novelplatform.service.CommentService;
-import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,82 +23,75 @@ public class CommentServiceImpl implements CommentService {
     private NovelMapper novelMapper;
 
     @Override
-    public ResponseMessage<Comment> getCommentById(Long commentId) {
+    public Comment getCommentById(Long commentId) {
         Comment comment = commentMapper.selectByCommentId(commentId);
         if (comment == null) {
-            return ResponseMessage.error("评论不存在");
+            throw new ServiceException("评论不存在");
         }
-        return ResponseMessage.success(comment);
+        return comment;
     }
 
     @Override
-    public ResponseMessage<List<Comment>> getCommentsByNovelId(Long novelId, Integer page, Integer size) {
+    public List<Comment> getCommentsByNovelId(Long novelId, Integer page, Integer size) {
         if (page == null || page < 1) page = 1;
         if (size == null || size < 1) size = 20;
 
         int offset = (page - 1) * size;
-        List<Comment> comments = commentMapper.selectByNovelId(novelId, offset, size);
-        return ResponseMessage.success(comments);
+        return commentMapper.selectByNovelId(novelId, offset, size);
     }
 
     @Override
-    public ResponseMessage<List<Comment>> getCommentsByChapterId(Long chapterId, Integer page, Integer size) {
+    public List<Comment> getCommentsByChapterId(Long chapterId, Integer page, Integer size) {
         if (page == null || page < 1) page = 1;
         if (size == null || size < 1) size = 20;
 
         int offset = (page - 1) * size;
-        List<Comment> comments = commentMapper.selectByChapterId(chapterId, offset, size);
-        return ResponseMessage.success(comments);
+        return commentMapper.selectByChapterId(chapterId, offset, size);
     }
 
     @Override
-    public ResponseMessage<List<Comment>> getCommentsByUserId(Long userId, Integer page, Integer size) {
+    public List<Comment> getCommentsByUserId(Long userId, Integer page, Integer size) {
         if (page == null || page < 1) page = 1;
         if (size == null || size < 1) size = 20;
 
         int offset = (page - 1) * size;
-        List<Comment> comments = commentMapper.selectByUserId(userId, offset, size);
-        return ResponseMessage.success(comments);
+        return commentMapper.selectByUserId(userId, offset, size);
     }
 
     @Override
-    public ResponseMessage<List<Comment>> getAllComments(Integer page, Integer size) {
+    public List<Comment> getAllComments(Integer page, Integer size) {
         if (page == null || page < 1) page = 1;
         if (size == null || size < 1) size = 20;
 
         int offset = (page - 1) * size;
-        List<Comment> comments = commentMapper.selectAllComments(offset, size);
-        return ResponseMessage.success(comments);
+        return commentMapper.selectAllComments(offset, size);
     }
 
     @Override
-    public ResponseMessage<List<Comment>> getCommentReplies(Long parentId) {
-        List<Comment> replies = commentMapper.selectReplies(parentId);
-        return ResponseMessage.success(replies);
+    public List<Comment> getCommentReplies(Long parentId) {
+        return commentMapper.selectReplies(parentId);
     }
 
     @Override
-    public ResponseMessage<Integer> getCommentCountByNovelId(Long novelId) {
-        int count = commentMapper.countByNovelId(novelId);
-        return ResponseMessage.success(count);
+    public int getCommentCountByNovelId(Long novelId) {
+        return commentMapper.countByNovelId(novelId);
     }
 
     @Override
-    public ResponseMessage<Integer> getCommentCountByUserId(Long userId) {
-        int count = commentMapper.countByUserId(userId);
-        return ResponseMessage.success(count);
+    public int getCommentCountByUserId(Long userId) {
+        return commentMapper.countByUserId(userId);
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> createComment(Comment comment) {
+    public Comment createComment(Comment comment) {
         if (comment.getUserId() == null || comment.getNovelId() == null) {
-            return ResponseMessage.error("用户 ID 和小说 ID 不能为空");
+            throw new ServiceException("用户 ID 和小说 ID 不能为空");
         }
 
         Novel novel = novelMapper.selectByNovelId(comment.getNovelId());
         if (novel == null) {
-            return ResponseMessage.error("小说不存在");
+            throw new ServiceException("小说不存在");
         }
 
         comment.setCreatedTime(LocalDateTime.now());
@@ -117,35 +110,35 @@ public class CommentServiceImpl implements CommentService {
             if (comment.getParentId() != null && comment.getParentId() > 0) {
                 commentMapper.incrementReplyCount(comment.getParentId());
             }
-            return ResponseMessage.success("评论成功", "评论成功");
+            return commentMapper.selectByCommentId(comment.getCommentId());
         } else {
-            return ResponseMessage.error("评论失败");
+            throw new ServiceException("评论失败");
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> updateComment(Comment comment) {
+    public Comment updateComment(Comment comment) {
         Comment existingComment = commentMapper.selectByCommentId(comment.getCommentId());
         if (existingComment == null) {
-            return ResponseMessage.error("评论不存在");
+            throw new ServiceException("评论不存在");
         }
 
         comment.setUpdatedTime(LocalDateTime.now());
         int result = commentMapper.updateComment(comment);
         if (result > 0) {
-            return ResponseMessage.success("更新成功", "更新成功");
+            return commentMapper.selectByCommentId(comment.getCommentId());
         } else {
-            return ResponseMessage.error("更新失败");
+            throw new ServiceException("更新失败");
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> deleteComment(Long commentId) {
+    public void deleteComment(Long commentId) {
         Comment comment = commentMapper.selectByCommentId(commentId);
         if (comment == null) {
-            return ResponseMessage.error("评论不存在");
+            throw new ServiceException("评论不存在");
         }
 
         int result = commentMapper.deleteComment(commentId);
@@ -153,56 +146,49 @@ public class CommentServiceImpl implements CommentService {
             if (comment.getParentId() != null && comment.getParentId() > 0) {
                 commentMapper.decrementReplyCount(comment.getParentId());
             }
-            return ResponseMessage.success("删除成功", "删除成功");
         } else {
-            return ResponseMessage.error("删除失败");
+            throw new ServiceException("删除失败");
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> deleteBatchComments(List<Long> commentIds) {
+    public void deleteBatchComments(List<Long> commentIds) {
         if (commentIds == null || commentIds.isEmpty()) {
-            return ResponseMessage.error("评论 ID 列表不能为空");
+            throw new ServiceException("评论 ID 列表不能为空");
         }
 
         int result = commentMapper.deleteBatchComments(commentIds);
-        if (result > 0) {
-            return ResponseMessage.success("批量删除成功", "批量删除成功");
-        } else {
-            return ResponseMessage.error("批量删除失败");
+        if (result <= 0) {
+            throw new ServiceException("批量删除失败");
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> likeComment(Long commentId) {
+    public void likeComment(Long commentId) {
         Comment comment = commentMapper.selectByCommentId(commentId);
         if (comment == null) {
-            return ResponseMessage.error("评论不存在");
+            throw new ServiceException("评论不存在");
         }
 
         int result = commentMapper.incrementLikeCount(commentId);
-        if (result > 0) {
-            return ResponseMessage.success("点赞成功", "点赞成功");
-        } else {
-            return ResponseMessage.error("点赞失败");
+        if (result <= 0) {
+            throw new ServiceException("点赞失败");
         }
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public ResponseMessage<String> unlikeComment(Long commentId) {
+    public void unlikeComment(Long commentId) {
         Comment comment = commentMapper.selectByCommentId(commentId);
         if (comment == null) {
-            return ResponseMessage.error("评论不存在");
+            throw new ServiceException("评论不存在");
         }
 
         int result = commentMapper.decrementLikeCount(commentId);
-        if (result > 0) {
-            return ResponseMessage.success("取消点赞成功", "取消点赞成功");
-        } else {
-            return ResponseMessage.error("取消点赞失败");
+        if (result <= 0) {
+            throw new ServiceException("取消点赞失败");
         }
     }
 }
