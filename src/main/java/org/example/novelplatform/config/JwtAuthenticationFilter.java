@@ -21,14 +21,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
-    private static final List<String> PUBLIC_PATHS = new ArrayList<>(List.of(
+    private static final List<String> PUBLIC_PATHS = List.of(
             "/api/user/login",
             "/api/user/register",
             "/api/auth/refresh",
             "/api/wechat/login",
             "/api/wechat/check-token",
             "/uploads/"
-    ));
+    );
+
+    private static final List<String> PUBLIC_GET_EXACT_PATHS = List.of(
+            "/api/novel/list",
+            "/api/novel/hot",
+            "/api/novel/latest",
+            "/api/novel/search"
+    );
+
+    private static final List<String> PUBLIC_GET_PREFIX_PATHS = List.of(
+            "/api/novel/cover/",
+            "/api/novel/author/",
+            "/api/novel/category/",
+            "/api/user/avatar/",
+            "/api/chapter/novel/",
+            "/api/comment/novel/",
+            "/api/comment/chapter/",
+            "/api/comment/replies/"
+    );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -39,15 +57,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        // 完全公开的路径
         for (String publicPath : PUBLIC_PATHS) {
             if (path.startsWith(publicPath)) {
                 return true;
             }
         }
 
-        // GET 请求的读取接口均公开
-        if ("GET".equalsIgnoreCase(method)) {
+        if ("GET".equalsIgnoreCase(method) && isPublicGetPath(path)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isPublicGetPath(String path) {
+        for (String exact : PUBLIC_GET_EXACT_PATHS) {
+            if (path.equals(exact)) {
+                return true;
+            }
+        }
+
+        for (String prefix : PUBLIC_GET_PREFIX_PATHS) {
+            if (path.startsWith(prefix)) {
+                return true;
+            }
+        }
+
+        if (path.matches("/api/novel/\\d+")) {
+            return true;
+        }
+
+        if (path.matches("/api/chapter/\\d+")) {
             return true;
         }
 
