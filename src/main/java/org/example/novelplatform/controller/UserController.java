@@ -14,11 +14,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/user")
@@ -100,8 +98,7 @@ public class UserController {
             String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getUsername());
             String refreshToken = jwtUtil.generateRefreshToken(user.getUserId(), user.getUsername());
 
-            // Refresh Token 存入 Redis（用于吊销）
-            redisUtil.set("refresh:token:" + md5(refreshToken), String.valueOf(user.getUserId()),
+            redisUtil.set("refresh:token:" + user.getUserId(), String.valueOf(user.getUserId()),
                     jwtUtil.getRefreshExpiration() / 1000);
 
             Map<String, Object> data = new HashMap<>();
@@ -112,20 +109,6 @@ public class UserController {
             return ResponseEntity.ok(ResponseMessage.success("登录成功", data));
         } else {
             return ResponseEntity.status(401).body(ResponseMessage.error(response.getMessage()));
-        }
-    }
-
-    private String md5(String input) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(input.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte b : digest) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            return UUID.randomUUID().toString();
         }
     }
 

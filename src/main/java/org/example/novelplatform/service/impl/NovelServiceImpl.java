@@ -3,6 +3,7 @@ package org.example.novelplatform.service.impl;
 import org.example.novelplatform.entity.Novel;
 import org.example.novelplatform.mapper.NovelMapper;
 import org.example.novelplatform.service.NovelService;
+import org.example.novelplatform.util.FileValidator;
 import org.example.novelplatform.util.ResponseMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -200,6 +201,10 @@ public class NovelServiceImpl implements NovelService {
             return ResponseMessage.error("只支持 jpg、jpeg、png、gif、webp 格式的图片");
         }
 
+        if (!FileValidator.validateImageFile(file)) {
+            return ResponseMessage.error("文件内容校验失败，请上传有效的图片文件");
+        }
+
         long fileSize = file.getSize();
         if (fileSize > 5 * 1024 * 1024) {
             return ResponseMessage.error("文件大小不能超过 5MB");
@@ -231,7 +236,7 @@ public class NovelServiceImpl implements NovelService {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseMessage.error("封面上传失败：" + e.getMessage());
+            return ResponseMessage.error("封面上传失败");
         }
     }
 }

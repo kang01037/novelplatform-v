@@ -60,7 +60,6 @@ public class WechatLoginController {
             }
 
             String openid = jsonNode.get("openid").asText();
-            String sessionKey = jsonNode.get("session_key").asText();
 
             User user = userService.getUserByOpenid(openid);
 
@@ -77,7 +76,7 @@ public class WechatLoginController {
             String accessToken = jwtUtil.generateAccessToken(user.getUserId(), user.getUsername());
             String refreshToken = jwtUtil.generateRefreshToken(user.getUserId(), user.getUsername());
 
-            redisUtil.set("refresh:token:" + md5(refreshToken), String.valueOf(user.getUserId()),
+            redisUtil.set("refresh:token:" + user.getUserId(), String.valueOf(user.getUserId()),
                     jwtUtil.getRefreshExpiration() / 1000);
 
             Map<String, Object> data = new HashMap<>();
@@ -89,7 +88,7 @@ public class WechatLoginController {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseMessage.error("登录异常: " + e.getMessage());
+            return ResponseMessage.error("系统错误，请稍后重试");
         }
     }
 
@@ -106,20 +105,6 @@ public class WechatLoginController {
             return ResponseMessage.success("Token有效", user);
         } else {
             return ResponseMessage.error("Token无效或已过期");
-        }
-    }
-
-    private String md5(String input) {
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
-            byte[] digest = md.digest(input.getBytes());
-            StringBuilder sb = new StringBuilder();
-            for (byte b : digest) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            return java.util.UUID.randomUUID().toString();
         }
     }
 }
