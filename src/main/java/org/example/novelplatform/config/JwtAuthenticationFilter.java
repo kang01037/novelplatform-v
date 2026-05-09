@@ -27,24 +27,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/auth/refresh",
             "/api/wechat/login",
             "/api/wechat/check-token",
-            // 管理操作（无需认证）
-            "/api/user/update",
-            "/api/user/delete/",
-            "/api/user/avatar/",
-            "/api/novel/create",
-            "/api/novel/update",
-            "/api/novel/delete/",
-            "/api/novel/",
-            "/api/chapter/create",
-            "/api/chapter/update",
-            "/api/chapter/delete/",
-            "/api/bookshelf/add",
-            "/api/bookshelf/remove",
-            "/api/bookshelf/reading-progress",
-            "/api/comment/create",
-            "/api/comment/update",
-            "/api/comment/delete/",
-            "/api/comment/",
             "/uploads/"
     );
 
