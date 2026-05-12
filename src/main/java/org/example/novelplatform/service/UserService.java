@@ -21,7 +21,7 @@ public interface UserService {
 
     void deleteUser(Long userId);
 
-    void login(String username, String password);
+    User login(String username, String password);
 
     void updateLastLoginTime(Long userId);
 

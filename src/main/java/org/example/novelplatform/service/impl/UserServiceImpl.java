@@ -58,12 +58,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User registerUser(User user) {
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            String encodedPassword = passwordEncoder.encode(user.getPassword());
-            user.setPassword(encodedPassword);
-        } else {
-            user.setPassword(null);
+        if (user.getPassword() == null || user.getPassword().isEmpty()) {
+            throw new ServiceException("密码不能为空");
         }
+        String encodedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(encodedPassword);
 
         User existingUser = userMapper.selectByUsernameWithoutDeleted(user.getUsername());
 
@@ -136,7 +135,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void login(String username, String password) {
+    public User login(String username, String password) {
         User user = userMapper.selectByUsername(username);
         if (user == null) {
             throw new ServiceException("用户不存在");
@@ -154,9 +153,12 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("用户已被禁用");
         }
 
-        updateLastLoginTime(user.getUserId());
+        userMapper.updateLastLoginTime(user.getUserId());
         userMapper.incrementLoginCount(user.getUserId());
         user.setLastLoginTime(LocalDateTime.now());
+        user.setLoginCount(user.getLoginCount() == null ? 1 : user.getLoginCount() + 1);
+
+        return user;
     }
 
     @Override

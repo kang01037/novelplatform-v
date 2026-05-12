@@ -33,6 +33,7 @@ novelplatform-v/
 ├── src/main/java/org/example/novelplatform/
 │   ├── NovelplatformVApplication.java    # 启动类
 │   ├── config/                           # 配置类
+│   │   ├── GlobalExceptionHandler.java   # 全局异常处理器
 │   │   ├── JwtAuthenticationFilter.java  # JWT 请求过滤器
 │   │   ├── RedisConfig.java              # Redis 配置
 │   │   ├── SecurityConfig.java           # Spring Security + CORS 配置
@@ -54,9 +55,13 @@ novelplatform-v/
 │   │   └── dto/
 │   │       └── UserDTO.java              # 数据传输对象
 │   ├── exception/                        # 异常处理
-│   │   ├── ServiceException.java         # 业务异常
-│   │   └── GlobalExceptionHandler.java   # 全局异常处理器
+│   │   └── ServiceException.java         # 业务异常
 │   ├── mapper/                           # MyBatis Mapper 接口
+│   │   ├── UserMapper.java
+│   │   ├── NovelMapper.java
+│   │   ├── ChapterMapper.java
+│   │   ├── BookshelfMapper.java
+│   │   └── CommentMapper.java
 │   ├── service/                          # 业务逻辑层（接口 + impl）
 │   │   ├── AuthService.java              # 认证服务
 │   │   ├── WechatAuthService.java        # 微信认证服务
@@ -70,10 +75,16 @@ novelplatform-v/
 │       ├── JwtUtil.java                  # JWT 令牌生成与校验
 │       ├── PasswordEncoder.java          # BCrypt 密码加密
 │       ├── RedisUtil.java                # Redis 操作封装
+│       ├── FileValidator.java            # 文件上传安全校验
 │       └── ResponseMessage.java          # 统一响应格式
 ├── src/main/resources/
 │   ├── application.yml                   # 主配置文件
 │   └── mapper/                           # MyBatis XML 映射文件
+│       ├── UserMapper.xml
+│       ├── NovelMapper.xml
+│       ├── ChapterMapper.xml
+│       ├── BookshelfMapper.xml
+│       └── CommentMapper.xml
 ├── uploads/
 │   ├── avatars/                          # 用户头像上传目录
 │   └── covers/                           # 小说封面上传目录

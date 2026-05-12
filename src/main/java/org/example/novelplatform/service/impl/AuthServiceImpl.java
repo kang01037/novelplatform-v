@@ -26,9 +26,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Map<String, Object> login(String username, String password) {
-        userService.login(username, password);
-
-        User user = userService.getUserByUsername(username);
+        User user = userService.login(username, password);
         return generateTokenPair(user);
     }
 
